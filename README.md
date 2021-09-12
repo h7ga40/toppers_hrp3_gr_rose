@@ -1,5 +1,9 @@
 # TOPPERS/HRP3 for GR-ROSE
 
-[こちら](https://github.com/iSotEE/hrp3-rx65n-rsk)にあるTOPPERS/HRP3のCCRX向けをGCC向けに変えたもの。
+[ここ](https://github.com/iSotEE/hrp3-rx65n-rsk)にあるTOPPERS/HRP3のCCRX向けをGCC向けに変えたもの。
 
-まだ動いません。
+まだバナー表示までしか動いません。
+
+TOPPERS/HRP3については、[こちら](https://www.toppers.jp/hrp3-kernel.html)に説明があります。
+
+GR-ROSEについては、[こちら](https://www.renesas.com/jp/ja/products/gadget-renesas/boards/gr-rose)に説明があります。

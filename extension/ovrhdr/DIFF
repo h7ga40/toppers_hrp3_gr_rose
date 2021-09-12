@@ -1,0 +1,598 @@
+Only in extension/ovrhdr: DIFF
+Only in .: E_PACKAGE
+Only in .: MANIFEST
+Only in .: MANIFEST.early
+Only in .: README.txt
+Only in .: arch
+Only in .: cfg
+Only in .: cfg_test
+Only in .: configure.rb
+Only in .: doc
+Only in .: extension
+Only in ./include: extsvc_fncode.h
+Only in ./include: itron.h
+diff -r ./include/kernel.h extension/ovrhdr/include/kernel.h
+111a112,115
+> #ifdef TOPPERS_TARGET_SUPPORT_OVRHDR
+> #define TOPPERS_SUPPORT_OVRHDR			/* オーバランハンドラ機能拡張 */
+> #endif /* TOPPERS_TARGET_SUPPORT_OVRHDR */
+> 
+140a145
+> typedef void	(*OVRHDR)(ID tskid, intptr_t exinf);
+235a241,245
+> typedef struct t_rovr {
+> 	STAT	ovrstat;	/* オーバランハンドラの動作状態 */
+> 	PRCTIM	leftotm;	/* 残りプロセッサ時間 */
+> } T_ROVR;
+> 
+267a278,279
+> #define ista_ovr(tskid, ovrtim)				sta_ovr(tskid, ovrtim)
+> #define istp_ovr(tskid)						stp_ovr(tskid)
+401a414,416
+> #define TOVR_STP		UINT_C(0x01)	/* オーバランハンドラが動作していない*/
+> #define TOVR_STA		UINT_C(0x02)	/* オーバランハンドラが動作している */
+> 
+475a491,497
+>  *  オーバランハンドラの残りプロセッサ時間の最大値（単位：μ秒）
+>  */
+> #ifndef TMAX_OVRTIM
+> #define TMAX_OVRTIM		UINT32_MAX
+> #endif /* TMAX_OVRTIM */
+> 
+> /*
+Only in ./include: kernel_fncode.h
+Only in ./include: log_output.h
+Only in ./include: queue.h
+Only in ./include: sil.h
+Only in ./include: svc_call.h
+Only in ./include: t_stddef.h
+Only in ./include: t_stdlib.h
+Only in ./include: t_syslog.h
+diff -r ./kernel/Makefile.kernel extension/ovrhdr/kernel/Makefile.kernel
+40c40
+< #  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+> #  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+56c56
+< 				sys_manage.c mem_manage.c interrupt.c exception.c
+---
+> 				overrun.c sys_manage.c mem_manage.c interrupt.c exception.c
+118a119,120
+> overrun = ovrsta.o ovrstp.o sta_ovr.o stp_ovr.o ref_ovr.o ovrcal.o
+> 
+154a157
+> $(addprefix $(OBJDIR)/, $(overrun)) $(overrun:.o=.s): overrun.c
+Only in ./kernel: alarm.c
+Only in ./kernel: alarm.h
+Only in ./kernel: alarm.trb
+diff -r ./kernel/allfunc.h extension/ovrhdr/kernel/allfunc.h
+38c38
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+255a256,263
+> /* overrun.c */
+> #define TOPPERS_ovrsta
+> #define TOPPERS_ovrstp
+> #define TOPPERS_sta_ovr
+> #define TOPPERS_stp_ovr
+> #define TOPPERS_ref_ovr
+> #define TOPPERS_ovrcal
+> 
+Only in ./kernel: check.h
+Only in ./kernel: cyclic.c
+Only in ./kernel: cyclic.h
+Only in ./kernel: cyclic.trb
+Only in ./kernel: dataqueue.c
+Only in ./kernel: dataqueue.h
+Only in ./kernel: dataqueue.trb
+Only in ./kernel: domain.c
+Only in ./kernel: domain.h
+Only in ./kernel: domain.trb
+Only in ./kernel: domain_prep.trb
+Only in ./kernel: eventflag.c
+Only in ./kernel: eventflag.h
+Only in ./kernel: eventflag.trb
+Only in ./kernel: exception.c
+Only in ./kernel: exception.h
+Only in ./kernel: exception.trb
+Only in ./kernel: genoffset.trb
+diff -r ./kernel/interrupt.c extension/ovrhdr/kernel/interrupt.c
+49a50
+> #include "overrun.h"
+377a379,383
+> #ifdef TOPPERS_SUPPORT_OVRHDR
+> 			if (p_runtsk->staovr) {
+> 				(void) target_ovrtimer_stop();
+> 			}
+> #endif /* TOPPERS_SUPPORT_OVRHDR */
+Only in ./kernel: interrupt.h
+Only in ./kernel: interrupt.trb
+diff -r ./kernel/kernel.trb extension/ovrhdr/kernel/kernel.trb
+435a436
+> IncludeTrb("kernel/overrun.trb")
+diff -r ./kernel/kernel_api.def extension/ovrhdr/kernel/kernel_api.def
+20a21
+> DEF_OVR { .ovratr &ovrhdr }
+diff -r ./kernel/kernel_api_mml.def extension/ovrhdr/kernel/kernel_api_mml.def
+20a21
+> DEF_OVR { .ovratr &ovrhdr }
+diff -r ./kernel/kernel_check.trb extension/ovrhdr/kernel/kernel_check.trb
+479a480,496
+> #  オーバランハンドラに関するチェック
+> #
+> if $cfgData[:DEF_OVR].size > 0
+>   params0 = $cfgData[:DEF_OVR][1]
+>   ovrinib = SYMBOL("_kernel_ovrinib")
+>   ovrhdr = PEEK(ovrinib + $offsetof_OVRINIB_ovrhdr, $sizeof_OVRHDR)
+> 
+>   # ovrhdrがプログラムの先頭番地として正しくない場合（E_PAR）［NGKI2613］
+>   if (ovrhdr & ($CHECK_FUNC_ALIGN - 1)) != 0
+>     error_wrong("E_PAR", params0, :ovrhdr, "not aligned")
+>   end
+>   if $CHECK_FUNC_NONNULL && ovrhdr == 0
+>     error_wrong("E_PAR", params0, :ovrhdr, "null")
+>   end
+> end
+> 
+> #
+Only in ./kernel: kernel_impl.h
+diff -r ./kernel/kernel_int.h extension/ovrhdr/kernel/kernel_int.h
+8c8
+<  *  Copyright (C) 2005-2016 by Embedded and Real-Time Systems Laboratory
+---
+>  *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
+40c40
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+69a70
+> #include "overrun.h"
+Only in ./kernel: kernel_lib.trb
+Only in ./kernel: kernel_mem.trb
+Only in ./kernel: kernel_opt.trb
+diff -r ./kernel/kernel_rename.def extension/ovrhdr/kernel/kernel_rename.def
+142a143,147
+> # overrun.c
+> ovrtimer_start
+> ovrtimer_stop
+> call_ovrhdr
+> 
+183a189
+> ovrinib
+diff -r ./kernel/kernel_rename.h extension/ovrhdr/kernel/kernel_rename.h
+180a181,187
+>  *  overrun.c
+>  */
+> #define ovrtimer_start				_kernel_ovrtimer_start
+> #define ovrtimer_stop				_kernel_ovrtimer_stop
+> #define call_ovrhdr					_kernel_call_ovrhdr
+> 
+> /*
+228a236
+> #define ovrinib						_kernel_ovrinib
+diff -r ./kernel/kernel_sym.def extension/ovrhdr/kernel/kernel_sym.def
+1a2
+> TOPPERS_SUPPORT_OVRHDR,true,bool,defined(TOPPERS_SUPPORT_OVRHDR),false
+139a141
+> sizeof_OVRHDR,sizeof(OVRHDR)
+220a223,225
+> sizeof_OVRINIB,sizeof(OVRINIB),,defined(TOPPERS_SUPPORT_OVRHDR)
+> offsetof_OVRINIB_ovratr,"offsetof(OVRINIB,ovratr)",,defined(TOPPERS_SUPPORT_OVRHDR)
+> offsetof_OVRINIB_ovrhdr,"offsetof(OVRINIB,ovrhdr)",,defined(TOPPERS_SUPPORT_OVRHDR)
+diff -r ./kernel/kernel_unrename.h extension/ovrhdr/kernel/kernel_unrename.h
+181a182,188
+>  *  overrun.c
+>  */
+> #undef ovrtimer_start
+> #undef ovrtimer_stop
+> #undef call_ovrhdr
+> 
+> /*
+229a237
+> #undef ovrinib
+Only in ./kernel: mem_manage.c
+Only in ./kernel: memory.c
+Only in ./kernel: memory.h
+Only in ./kernel: memory.trb
+Only in ./kernel: memory_prep.trb
+Only in ./kernel: mempfix.c
+Only in ./kernel: mempfix.h
+Only in ./kernel: mempfix.trb
+Only in ./kernel: messagebuf.c
+Only in ./kernel: messagebuf.h
+Only in ./kernel: messagebuf.trb
+Only in ./kernel: mutex.c
+Only in ./kernel: mutex.h
+Only in ./kernel: mutex.trb
+Only in extension/ovrhdr/kernel: overrun.c
+Only in extension/ovrhdr/kernel: overrun.h
+Only in extension/ovrhdr/kernel: overrun.trb
+Only in ./kernel: pridataq.c
+Only in ./kernel: pridataq.h
+Only in ./kernel: pridataq.trb
+Only in ./kernel: semaphore.c
+Only in ./kernel: semaphore.h
+Only in ./kernel: semaphore.trb
+Only in ./kernel: startup.c
+Only in ./kernel: svc.def
+Only in ./kernel: svc_manage.h
+Only in ./kernel: svc_manage.trb
+Only in ./kernel: svc_table.c
+diff -r ./kernel/sys_manage.c extension/ovrhdr/kernel/sys_manage.c
+40c40
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+50a51
+> #include "overrun.h"
+638a640,644
+> #ifdef TOPPERS_SUPPORT_OVRHDR
+> 			if (p_runtsk->staovr) {
+> 				(void) target_ovrtimer_stop();
+> 			}
+> #endif /* TOPPERS_SUPPORT_OVRHDR */
+diff -r ./kernel/task.c extension/ovrhdr/kernel/task.c
+292a293,295
+> #ifdef TOPPERS_SUPPORT_OVRHDR
+> 	p_tcb->staovr = false;
+> #endif /* TOPPERS_SUPPORT_OVRHDR */
+diff -r ./kernel/task.h extension/ovrhdr/kernel/task.h
+40c40
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+226c226
+<  *  		p_tinib，p_dominib，p_schedcb，tstat，actque
+---
+>  *  		p_tinib，p_dominib，p_schedcb，tstat，actque，staovr，leftotm
+256a257,259
+> #ifdef TOPPERS_SUPPORT_OVRHDR
+> 	BIT_FIELD_BOOL	staovr : 1;		/* オーバランハンドラ動作状態 */
+> #endif /* TOPPERS_SUPPORT_OVRHDR */
+259a263,265
+> #ifdef TOPPERS_SUPPORT_OVRHDR
+> 	PRCTIM			leftotm;		/* 残りプロセッサ時間 */
+> #endif /* TOPPERS_SUPPORT_OVRHDR */
+Only in ./kernel: task.trb
+Only in ./kernel: task_manage.c
+Only in ./kernel: task_refer.c
+Only in ./kernel: task_sync.c
+diff -r ./kernel/task_term.c extension/ovrhdr/kernel/task_term.c
+40c40
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+51a52
+> #include "overrun.h"
+145a147,151
+> #ifdef TOPPERS_SUPPORT_OVRHDR
+> 	if (p_runtsk->staovr) {
+> 		(void) target_ovrtimer_stop();
+> 	}
+> #endif /* TOPPERS_SUPPORT_OVRHDR */
+253a260,264
+> #ifdef TOPPERS_SUPPORT_OVRHDR
+> 		if (p_runtsk->staovr) {
+> 			(void) target_ovrtimer_stop();
+> 		}
+> #endif /* TOPPERS_SUPPORT_OVRHDR */
+Only in ./kernel: taskhook.c
+Only in ./kernel: taskhook.h
+Only in ./kernel: time_event.c
+Only in ./kernel: time_event.h
+Only in ./kernel: time_manage.c
+Only in ./kernel: wait.c
+Only in ./kernel: wait.h
+Only in .: library
+Only in ./sample: Makefile
+Only in ./sample: Makefile_mml
+diff -r ./sample/sample1.c extension/ovrhdr/sample/sample1.c
+40c40
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+54,56c54,57
+<  *  ム通知，割込みサービスルーチン，CPU例外ハンドラをそれぞれ1つ用いる．
+<  *  TASK1，TASK2，ALM_TASK，アラーム通知は保護ドメイン1（DOM1）に，
+<  *  TASK3は保護ドメイン2（DOM2）に，その他はカーネルドメインに属する．
+---
+>  *  ム通知，割込みサービスルーチン，CPU例外ハンドラ，オーバランハンド
+>  *  ラをそれぞれ1つ用いる．TASK1，TASK2，ALM_TASK，アラーム通知は保護
+>  *  ドメイン1（DOM1）に，TASK3は保護ドメイン2（DOM2）に，その他はカー
+>  *  ネルドメインに属する．
+113a115,116
+>  *  'o' : 対象タスクに対してオーバランハンドラを動作開始させる．
+>  *  'O' : 対象タスクに対してオーバランハンドラを動作停止させる．
+175c178
+< 	const char	*graph[] = { "@    |", "  +  |", "     |  *" };
+---
+> 	const char	*graph[] = { "@    |   ", "  +  |   ", "     |  *" };
+176a180,182
+> #ifdef TOPPERS_SUPPORT_OVRHDR
+> 	T_ROVR		pk_rovr;
+> #endif /* TOPPERS_SUPPORT_OVRHDR */
+178a185,195
+> #ifdef TOPPERS_SUPPORT_OVRHDR
+> 		SVC_PERROR(ref_ovr(TSK_SELF, &pk_rovr));
+> 		if ((pk_rovr.ovrstat & TOVR_STA) != 0) {
+> 			syslog(LOG_NOTICE, "task%d is running (%03d).   %s  [%ld]",
+> 								tskno, ++n, graph[tskno-1], pk_rovr.leftotm);
+> 		}
+> 		else {
+> 			syslog(LOG_NOTICE, "task%d is running (%03d).   %s",
+> 										tskno, ++n, graph[tskno-1]);
+> 		}
+> #else /* TOPPERS_SUPPORT_OVRHDR */
+180a198
+> #endif /* TOPPERS_SUPPORT_OVRHDR */
+329a348,362
+>  *  オーバランハンドラ
+>  */
+> #ifdef TOPPERS_SUPPORT_OVRHDR
+> 
+> void
+> overrun_handler(ID tskid, intptr_t exinf)
+> {
+> 	int_t	tskno = (int_t) exinf;
+> 
+> 	syslog(LOG_NOTICE, "Overrun handler for task%d.", tskno);
+> }
+> 
+> #endif /* TOPPERS_SUPPORT_OVRHDR */
+> 
+> /*
+544a578,594
+> 		case 'o':
+> #ifdef TOPPERS_SUPPORT_OVRHDR
+> 			syslog(LOG_INFO, "#sta_ovr(%d, 1000000)", tskno);
+> 			SVC_PERROR(sta_ovr(tskid, 1000000));
+> #else /* TOPPERS_SUPPORT_OVRHDR */
+> 			syslog(LOG_NOTICE, "sta_ovr is not supported.");
+> #endif /* TOPPERS_SUPPORT_OVRHDR */
+> 			break;
+> 		case 'O':
+> #ifdef TOPPERS_SUPPORT_OVRHDR
+> 			syslog(LOG_INFO, "#stp_ovr(%d)", tskno);
+> 			SVC_PERROR(stp_ovr(tskid));
+> #else /* TOPPERS_SUPPORT_OVRHDR */
+> 			syslog(LOG_NOTICE, "stp_ovr is not supported.");
+> #endif /* TOPPERS_SUPPORT_OVRHDR */
+> 			break;
+> 
+Only in ./sample: sample1.cdl
+diff -r ./sample/sample1.cfg extension/ovrhdr/sample/sample1.cfg
+4c4
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+39a40,42
+> #ifdef TOPPERS_SUPPORT_OVRHDR
+> 	DEF_OVR({ TA_NULL, overrun_handler });
+> #endif /* TOPPERS_SUPPORT_OVRHDR */
+diff -r ./sample/sample1.h extension/ovrhdr/sample/sample1.h
+8c8
+<  *  Copyright (C) 2004-2016 by Embedded and Real-Time Systems Laboratory
+---
+>  *  Copyright (C) 2004-2018 by Embedded and Real-Time Systems Laboratory
+40c40
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+98a99,101
+> #ifdef TOPPERS_SUPPORT_OVRHDR
+> extern void	overrun_handler(ID tskid, intptr_t exinf);
+> #endif /* TOPPERS_SUPPORT_OVRHDR */
+Only in ./sample: tSample2.c
+Only in ./sample: tSample2.cdl
+Only in ./sample: tSample2.cfg
+Only in ./sample: tSample2.h
+Only in .: syssvc
+Only in .: target
+Only in .: tecs_kernel
+Only in .: tecsgen
+Only in ./test: MANIFEST
+Only in ./test: perf0.c
+Only in ./test: perf0.cfg
+Only in ./test: perf0.h
+Only in ./test: perf0u.cfg
+Only in ./test: perf1.c
+Only in ./test: perf1.cfg
+Only in ./test: perf1.h
+Only in ./test: perf1u.cfg
+Only in ./test: perf2.c
+Only in ./test: perf2.cfg
+Only in ./test: perf2.h
+Only in ./test: perf3.c
+Only in ./test: perf3.cfg
+Only in ./test: perf3.h
+Only in ./test: perf4.c
+Only in ./test: perf4.cfg
+Only in ./test: perf4.h
+Only in ./test: perf5.c
+Only in ./test: perf5.cfg
+Only in ./test: perf5.h
+Only in ./test: perf_pf.cdl
+Only in extension/ovrhdr/test: simt_ovrhdr3.c
+Only in extension/ovrhdr/test: simt_ovrhdr3.cfg
+Only in extension/ovrhdr/test: simt_ovrhdr3.h
+Only in ./test: simt_systim1.c
+Only in ./test: simt_systim1.cfg
+Only in ./test: simt_systim1.h
+Only in ./test: simt_systim1_64hrt.c
+Only in ./test: simt_systim1_64hrt.cfg
+Only in ./test: simt_systim2.c
+Only in ./test: simt_systim2.cfg
+Only in ./test: simt_systim2.h
+Only in ./test: simt_systim2_64hrt.c
+Only in ./test: simt_systim2_64hrt.cfg
+Only in ./test: simt_systim3.c
+Only in ./test: simt_systim3.cfg
+Only in ./test: simt_systim3.h
+Only in ./test: simt_systim3_64hrt.c
+Only in ./test: simt_systim3_64hrt.cfg
+Only in ./test: simt_systim4.c
+Only in ./test: simt_systim4.cfg
+Only in ./test: simt_systim4.h
+Only in ./test: simt_twd1.c
+Only in ./test: simt_twd1.cfg
+Only in ./test: simt_twd1.h
+Only in ./test: tBitKernel.c
+Only in ./test: tBitMutex.c
+Only in ./test: test_calsvc.c
+Only in ./test: test_calsvc.cfg
+Only in ./test: test_calsvc.h
+Only in ./test: test_common.h
+Only in ./test: test_common2.cfg
+Only in ./test: test_cpuexc.h
+Only in ./test: test_cpuexc.txt
+Only in ./test: test_cpuexc1.c
+Only in ./test: test_cpuexc1.cfg
+Only in ./test: test_cpuexc10.c
+Only in ./test: test_cpuexc10.cfg
+Only in ./test: test_cpuexc2.c
+Only in ./test: test_cpuexc2.cfg
+Only in ./test: test_cpuexc3.c
+Only in ./test: test_cpuexc3.cfg
+Only in ./test: test_cpuexc4.c
+Only in ./test: test_cpuexc4.cfg
+Only in ./test: test_cpuexc5.c
+Only in ./test: test_cpuexc5.cfg
+Only in ./test: test_cpuexc6.c
+Only in ./test: test_cpuexc6.cfg
+Only in ./test: test_cpuexc7.c
+Only in ./test: test_cpuexc7.cfg
+Only in ./test: test_cpuexc8.c
+Only in ./test: test_cpuexc8.cfg
+Only in ./test: test_cpuexc9.c
+Only in ./test: test_cpuexc9.cfg
+Only in ./test: test_dlynse.c
+Only in ./test: test_dlynse.cfg
+Only in ./test: test_dlynse.h
+Only in ./test: test_dtq1.c
+Only in ./test: test_dtq1.cfg
+Only in ./test: test_dtq1.h
+Only in ./test: test_extsvc1.c
+Only in ./test: test_extsvc1.cfg
+Only in ./test: test_extsvc1.h
+Only in ./test: test_exttsk.c
+Only in ./test: test_exttsk.cfg
+Only in ./test: test_exttsk.h
+Only in ./test: test_flg1.c
+Only in ./test: test_flg1.cfg
+Only in ./test: test_flg1.h
+Only in ./test: test_hrt1.c
+Only in ./test: test_hrt1.cfg
+Only in ./test: test_hrt1.h
+Only in ./test: test_int1.c
+Only in ./test: test_int1.cfg
+Only in ./test: test_int1.h
+Only in ./test: test_messagebuf1.c
+Only in ./test: test_messagebuf1.cfg
+Only in ./test: test_messagebuf1.h
+Only in ./test: test_messagebuf2.c
+Only in ./test: test_messagebuf2.cfg
+Only in ./test: test_messagebuf2.h
+Only in ./test: test_mprot1.c
+Only in ./test: test_mprot1.cfg
+Only in ./test: test_mprot1.h
+Only in ./test: test_mprot2.c
+Only in ./test: test_mprot2.cfg
+Only in ./test: test_mprot2.h
+Only in ./test: test_mutex.h
+Only in ./test: test_mutex1.c
+Only in ./test: test_mutex1.cfg
+Only in ./test: test_mutex2.c
+Only in ./test: test_mutex2.cfg
+Only in ./test: test_mutex3.c
+Only in ./test: test_mutex3.cfg
+Only in ./test: test_mutex4.c
+Only in ./test: test_mutex4.cfg
+Only in ./test: test_mutex4.h
+Only in ./test: test_mutex5.c
+Only in ./test: test_mutex5.cfg
+Only in ./test: test_mutex5.h
+Only in ./test: test_mutex6.c
+Only in ./test: test_mutex6.cfg
+Only in ./test: test_mutex6.h
+Only in ./test: test_mutex7.c
+Only in ./test: test_mutex7.cfg
+Only in ./test: test_mutex7.h
+Only in ./test: test_mutex8.c
+Only in ./test: test_mutex8.cfg
+Only in ./test: test_mutex8.h
+Only in ./test: test_notify1.c
+Only in ./test: test_notify1.cfg
+Only in ./test: test_notify1.h
+Only in extension/ovrhdr/test: test_ovrhdr1.c
+Only in extension/ovrhdr/test: test_ovrhdr1.cfg
+Only in extension/ovrhdr/test: test_ovrhdr1.h
+Only in extension/ovrhdr/test: test_ovrhdr2.c
+Only in extension/ovrhdr/test: test_ovrhdr2.cfg
+Only in extension/ovrhdr/test: test_ovrhdr2.h
+Only in extension/ovrhdr/test: test_ovrhdr4.c
+Only in extension/ovrhdr/test: test_ovrhdr4.cfg
+Only in extension/ovrhdr/test: test_ovrhdr4.h
+Only in extension/ovrhdr/test: test_ovrhdr5.c
+Only in extension/ovrhdr/test: test_ovrhdr5.cfg
+Only in extension/ovrhdr/test: test_ovrhdr5.h
+Only in ./test: test_pf.cdl
+Only in ./test: test_pf_bitkernel.cdl
+Only in ./test: test_pf_bitmutex.cdl
+Only in ./test: test_prbstr.c
+Only in ./test: test_prbstr.cfg
+Only in ./test: test_prbstr.h
+Only in ./test: test_raster1.c
+Only in ./test: test_raster1.cfg
+Only in ./test: test_raster1.h
+Only in ./test: test_raster2.c
+Only in ./test: test_raster2.cfg
+Only in ./test: test_raster2.h
+Only in ./test: test_sched1.c
+Only in ./test: test_sched1.cfg
+Only in ./test: test_sched1.h
+Only in ./test: test_sem1.c
+Only in ./test: test_sem1.cfg
+Only in ./test: test_sem1.h
+Only in ./test: test_sem2.c
+Only in ./test: test_sem2.cfg
+Only in ./test: test_sem2.h
+Only in ./test: test_suspend1.c
+Only in ./test: test_suspend1.cfg
+Only in ./test: test_suspend1.h
+Only in ./test: test_sysman1.c
+Only in ./test: test_sysman1.cfg
+Only in ./test: test_sysman1.h
+Only in ./test: test_sysman2.c
+Only in ./test: test_sysman2.cfg
+Only in ./test: test_sysstat1.c
+Only in ./test: test_sysstat1.cfg
+Only in ./test: test_sysstat1.h
+Only in ./test: test_sysstat2.c
+Only in ./test: test_sysstat2.cfg
+Only in ./test: test_sysstat2.h
+Only in ./test: test_task1.c
+Only in ./test: test_task1.cfg
+Only in ./test: test_task1.h
+Only in ./test: test_tmevt1.c
+Only in ./test: test_tmevt1.cfg
+Only in ./test: test_tmevt1.h
+Only in ./test: test_tprot1.c
+Only in ./test: test_tprot1.cfg
+Only in ./test: test_tprot1.h
+Only in ./test: test_tprot2.c
+Only in ./test: test_tprot2.cfg
+Only in ./test: test_tprot2.h
+Only in ./test: test_tprot3.c
+Only in ./test: test_tprot3.cfg
+Only in ./test: test_tprot3.h
+Only in ./test: test_tprot4.c
+Only in ./test: test_tprot4.cfg
+Only in ./test: test_tprot4.h
+Only in ./test: test_tprot5.c
+Only in ./test: test_tprot5.cfg
+Only in ./test: test_twdnfy.c
+Only in ./test: test_twdnfy.cfg
+Only in ./test: test_twdnfy.h
+Only in ./test: testexec.rb
+Only in .: utils

@@ -1,0 +1,1976 @@
+Only in extension/non_tecs: DIFF
+Only in .: E_PACKAGE
+Only in .: MANIFEST
+Only in .: MANIFEST.early
+Only in .: README.txt
+Only in ./arch/arm_gcc: E_PACKAGE
+Only in ./arch/arm_gcc: MANIFEST
+Only in ./arch/arm_gcc/common: Makefile.core
+Only in ./arch/arm_gcc/common: arm.c
+Only in ./arch/arm_gcc/common: arm.h
+Only in ./arch/arm_gcc/common: arm_insn.h
+Only in ./arch/arm_gcc/common: arm_mmu.trb
+Only in ./arch/arm_gcc/common: cfg1_out.ld
+Only in ./arch/arm_gcc/common: core_asm.inc
+Only in ./arch/arm_gcc/common: core_cfg1_out.h
+Only in ./arch/arm_gcc/common: core_check.trb
+Only in ./arch/arm_gcc/common: core_kernel.h
+Only in ./arch/arm_gcc/common: core_kernel.trb
+Only in ./arch/arm_gcc/common: core_kernel_impl.c
+Only in ./arch/arm_gcc/common: core_kernel_impl.h
+Only in ./arch/arm_gcc/common: core_ldscript.trb
+Only in ./arch/arm_gcc/common: core_mem.trb
+Only in ./arch/arm_gcc/common: core_offset.trb
+Only in ./arch/arm_gcc/common: core_opt.trb
+Only in ./arch/arm_gcc/common: core_rename.def
+Only in ./arch/arm_gcc/common: core_rename.h
+Only in ./arch/arm_gcc/common: core_sil.h
+Only in ./arch/arm_gcc/common: core_stddef.h
+Only in ./arch/arm_gcc/common: core_support.S
+Only in ./arch/arm_gcc/common: core_svc.h
+Only in ./arch/arm_gcc/common: core_sym.def
+Only in ./arch/arm_gcc/common: core_syssvc.h
+Only in ./arch/arm_gcc/common: core_test.h
+Only in ./arch/arm_gcc/common: core_unrename.h
+Only in ./arch/arm_gcc/common: gic_kernel_impl.c
+Only in ./arch/arm_gcc/common: gic_kernel_impl.h
+Only in ./arch/arm_gcc/common: gic_support.S
+Only in ./arch/arm_gcc/common: mpcore.h
+Only in ./arch/arm_gcc/common: mpcore_kernel_impl.c
+Only in ./arch/arm_gcc/common: mpcore_kernel_impl.h
+Only in ./arch/arm_gcc/common: mpcore_timer.c
+Only in ./arch/arm_gcc/common: mpcore_timer.cfg
+Only in ./arch/arm_gcc/common: mpcore_timer.h
+Only in ./arch/arm_gcc/common: pl310.c
+Only in ./arch/arm_gcc/common: pl310.h
+Only in ./arch/arm_gcc/common: start.S
+Only in ./arch/arm_gcc/common: tUartPL011.c
+Only in ./arch/arm_gcc/common: tUartPL011.cdl
+Only in extension/non_tecs/arch/arm_gcc/common: uart_pl011.c
+diff -r ./arch/arm_gcc/common/uart_pl011.h extension/non_tecs/arch/arm_gcc/common/uart_pl011.h
+7c7
+<  *  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+---
+>  *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
+39c39
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+43c43
+<  *		ARM PrimCell UART（PL011）に関する定義
+---
+>  *		ARM PrimCell UART（PL011）に関する定義と簡易SIOドライバ
+49a50,53
+>  *		ARM PrimCell UART（PL011）に関する定義
+>  */
+> 
+> /*
+93a98,222
+> #ifdef TOPPERS_OMIT_TECS
+> /*
+>  *		ARM PrimCell UART（PL011）用 簡易SIOドライバ
+>  */
+> #include <sil.h>
+> 
+> /*
+>  *  SIOポート数の定義
+>  */
+> #define TNUM_SIOP		1		/* サポートするSIOポートの数 */
+> 
+> /*
+>  *  コールバックルーチンの識別番号
+>  */
+> #define SIO_RDY_SND		1U		/* 送信可能コールバック */
+> #define SIO_RDY_RCV		2U		/* 受信通知コールバック */
+> 
+> #ifndef TOPPERS_MACRO_ONLY
+> 
+> /*
+>  *  SIOポート管理ブロックの定義
+>  */
+> typedef struct sio_port_control_block	SIOPCB;
+> 
+> /*
+>  *  プリミティブな送信／受信関数
+>  */
+> 
+> /*
+>  *  受信バッファに文字があるか？
+>  */
+> Inline bool_t
+> uart_pl011_getready(uintptr_t base)
+> {
+> 	return((sil_rew_mem(UART_FR(base)) & UART_FR_RXFE) == 0U);
+> }
+> 
+> /*
+>  *  送信バッファに空きがあるか？
+>  */
+> Inline bool_t
+> uart_pl011_putready(uintptr_t base)
+> {
+> 	return((sil_rew_mem(UART_FR(base)) & UART_FR_TXFF) == 0U);
+> }
+> 
+> /*
+>  *  受信した文字の取出し
+>  */
+> Inline char
+> uart_pl011_getchar(uintptr_t base)
+> {
+> 	return((char) sil_rew_mem(UART_DR(base)));
+> }
+> 
+> /*
+>  *  送信する文字の書込み
+>  */
+> Inline void
+> uart_pl011_putchar(uintptr_t base, char c)
+> {
+> 	sil_wrw_mem(UART_DR(base), (uint32_t) c);
+> }
+> 
+> /*
+>  *  シリアルインタフェースドライバに提供する機能
+>  */
+> 
+> /*
+>  *  SIOドライバの初期化
+>  */
+> extern void		uart_pl011_initialize(void);
+> 
+> /*
+>  *  SIOドライバの終了処理
+>  */
+> extern void		uart_pl011_terminate(void);
+> 
+> /*
+>  *  SIOの割込みサービスルーチン
+>  */
+> extern void		uart_pl011_isr(ID siopid);
+> 
+> /*
+>  *  SIOポートのオープン
+>  */
+> extern SIOPCB	*uart_pl011_opn_por(ID siopid, intptr_t exinf);
+> 
+> /*
+>  *  SIOポートのクローズ
+>  */
+> extern void		uart_pl011_cls_por(SIOPCB *siopcb);
+> 
+> /*
+>  *  SIOポートへの文字送信
+>  */
+> extern bool_t	uart_pl011_snd_chr(SIOPCB *siopcb, char c);
+> 
+> /*
+>  *  SIOポートからの文字受信
+>  */
+> extern int_t	uart_pl011_rcv_chr(SIOPCB *siopcb);
+> 
+> /*
+>  *  SIOポートからのコールバックの許可
+>  */
+> extern void		uart_pl011_ena_cbr(SIOPCB *siopcb, uint_t cbrtn);
+> 
+> /*
+>  *  SIOポートからのコールバックの禁止
+>  */
+> extern void		uart_pl011_dis_cbr(SIOPCB *siopcb, uint_t cbrtn);
+> 
+> /*
+>  *  SIOポートからの送信可能コールバック
+>  */
+> extern void		uart_pl011_irdy_snd(intptr_t exinf);
+> 
+> /*
+>  *  SIOポートからの受信通知コールバック
+>  */
+> extern void		uart_pl011_irdy_rcv(intptr_t exinf);
+> 
+> #endif /* TOPPERS_MACRO_ONLY */
+> #endif /* TOPPERS_OMIT_TECS */
+Only in ./arch/arm_gcc: doc
+Only in ./arch/arm_gcc/rza1: MANIFEST
+Only in ./arch/arm_gcc/rza1: Makefile.chip
+Only in ./arch/arm_gcc/rza1: chip_kernel.h
+Only in ./arch/arm_gcc/rza1: chip_kernel.trb
+Only in ./arch/arm_gcc/rza1: chip_kernel_impl.c
+Only in ./arch/arm_gcc/rza1: chip_kernel_impl.h
+Only in ./arch/arm_gcc/rza1: chip_rename.def
+Only in ./arch/arm_gcc/rza1: chip_rename.h
+Only in extension/non_tecs/arch/arm_gcc/rza1: chip_serial.c
+Only in extension/non_tecs/arch/arm_gcc/rza1: chip_serial.cfg
+Only in extension/non_tecs/arch/arm_gcc/rza1: chip_serial.h
+Only in ./arch/arm_gcc/rza1: chip_stddef.h
+Only in ./arch/arm_gcc/rza1: chip_sym.def
+Only in ./arch/arm_gcc/rza1: chip_timer.c
+Only in ./arch/arm_gcc/rza1: chip_timer.cfg
+Only in ./arch/arm_gcc/rza1: chip_timer.h
+Only in ./arch/arm_gcc/rza1: chip_unrename.h
+Only in ./arch/arm_gcc/rza1: rza1.h
+Only in extension/non_tecs/arch/arm_gcc/rza1: scif.c
+diff -r ./arch/arm_gcc/rza1/scif.h extension/non_tecs/arch/arm_gcc/rza1/scif.h
+7c7
+<  *  Copyright (C) 2007-2016 by Embedded and Real-Time Systems Laboratory
+---
+>  *  Copyright (C) 2007-2018 by Embedded and Real-Time Systems Laboratory
+39c39
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+43c43,44
+<  *		FIFO内蔵シリアルコミュニケーションインタフェースに関する定義
+---
+>  *		FIFO内蔵シリアルコミュニケーションインタフェースに関する定義と
+>  *		簡易SIOドライバ
+49a51,54
+>  *		FIFO内蔵シリアルコミュニケーションインタフェースに関する定義
+>  */
+> 
+> /*
+72c77
+< #define SCIF_SCSMR_PARITY	0x0020U		/* パリティビット付加 */
+---
+> #define SCIF_SCSMR_PARITY	0x0020U		/* パリティビットの付加 */
+152a158,320
+> #ifdef TOPPERS_OMIT_TECS
+> /*
+>  *		FIFO内蔵シリアルコミュニケーションインタフェース用 簡易SIOドライバ
+>  */
+> #include <sil.h>
+> 
+> /*
+>  *  SIOポート数の定義
+>  */
+> #define TNUM_SIOP		1		/* サポートするSIOポートの数 */
+> 
+> /*
+>  *  コールバックルーチンの識別番号
+>  */
+> #define SIO_RDY_SND		1U		/* 送信可能コールバック */
+> #define SIO_RDY_RCV		2U		/* 受信通知コールバック */
+> 
+> #ifndef TOPPERS_MACRO_ONLY
+> 
+> /*
+>  *  SIOポート管理ブロックの定義
+>  */
+> typedef struct sio_port_control_block	SIOPCB;
+> 
+> /*
+>  *  プリミティブな送信／受信関数
+>  */
+> 
+> /*
+>  *  受信バッファに文字があるか？
+>  */
+> Inline bool_t
+> scif_getready(uintptr_t base)
+> {
+> 	uint16_t	fsr;
+> 	uint16_t	lsr;
+> 
+> 	fsr = sil_reh_mem(SCIF_SCFSR(base));
+> 	lsr = sil_reh_mem(SCIF_SCLSR(base));
+> 	if ((fsr & (SCIF_SCFSR_ER|SCIF_SCFSR_BRK)) != 0U) {
+> 		fsr &= ~(SCIF_SCFSR_ER|SCIF_SCFSR_BRK);
+> 		sil_wrh_mem(SCIF_SCFSR(base), fsr);
+> 	}
+> 	if ((lsr & SCIF_SCLSR_ORER) != 0U) {
+> 		lsr &= ~(SCIF_SCLSR_ORER);
+> 		sil_wrh_mem(SCIF_SCLSR(base), lsr);
+> 	}
+> 	return((fsr & SCIF_SCFSR_RDF) != 0U);
+> }
+> 
+> /*
+>  *  送信バッファに空きがあるか？
+>  */
+> Inline bool_t
+> scif_putready(uintptr_t base)
+> {
+> 	uint16_t	fsr;
+> 
+> 	fsr = sil_reh_mem(SCIF_SCFSR(base));
+> 	return((fsr & SCIF_SCFSR_TDFE) != 0U);
+> }
+> 
+> /*
+>  *  受信した文字の取出し
+>  */
+> Inline bool_t
+> scif_getchar(uintptr_t base, char *p_c)
+> {
+> 	uint16_t	fsr;
+> 	uint16_t	lsr;
+> 
+> 	fsr = sil_reh_mem(SCIF_SCFSR(base));
+> 	lsr = sil_reh_mem(SCIF_SCLSR(base));
+> 	if ((fsr & (SCIF_SCFSR_ER|SCIF_SCFSR_BRK)) != 0U) {
+> 		fsr &= ~(SCIF_SCFSR_ER|SCIF_SCFSR_BRK);
+> 		sil_wrh_mem(SCIF_SCFSR(base), fsr);
+> 	}
+> 	if ((lsr & SCIF_SCLSR_ORER) != 0U) {
+> 		lsr &= ~(SCIF_SCLSR_ORER);
+> 		sil_wrh_mem(SCIF_SCLSR(base), lsr);
+> 	}
+> 	if ((fsr & SCIF_SCFSR_RDF) != 0U) {
+> 		*p_c = (char) sil_reb_mem(SCIF_SCFRDR(base));
+> 		fsr &= ~(SCIF_SCFSR_RDF);
+> 		sil_wrh_mem(SCIF_SCFSR(base), fsr);
+> 		return(true);
+> 	}
+> 	return(false);
+> }
+> 
+> /*
+>  *  送信する文字の書込み
+>  */
+> Inline void
+> scif_putchar(uintptr_t base, char c)
+> {
+> 	sil_wrb_mem(SCIF_SCFTDR(base), c);
+> 	sil_wrh_mem(SCIF_SCFSR(base),
+> 				(uint16_t) ~(SCIF_SCFSR_TEND|SCIF_SCFSR_TDFE));
+> }
+> 
+> /*
+>  *  シリアルインタフェースドライバに提供する機能
+>  */
+> 
+> /*
+>  *  SIOドライバの初期化
+>  */
+> extern void		scif_initialize(void);
+> 
+> /*
+>  *  SIOドライバの終了処理
+>  */
+> extern void		scif_terminate(void);
+> 
+> /*
+>  *  SIOの割込みサービスルーチン
+>  */
+> extern void		scif_isr_rx(ID siopid);
+> extern void		scif_isr_tx(ID siopid);
+> 
+> /*
+>  *  SIOポートのオープン
+>  */
+> extern SIOPCB	*scif_opn_por(ID siopid, intptr_t exinf);
+> 
+> /*
+>  *  SIOポートのクローズ
+>  */
+> extern void		scif_cls_por(SIOPCB *siopcb);
+> 
+> /*
+>  *  SIOポートへの文字送信
+>  */
+> extern bool_t	scif_snd_chr(SIOPCB *siopcb, char c);
+> 
+> /*
+>  *  SIOポートからの文字受信
+>  */
+> extern int_t	scif_rcv_chr(SIOPCB *siopcb);
+> 
+> /*
+>  *  SIOポートからのコールバックの許可
+>  */
+> extern void		scif_ena_cbr(SIOPCB *siopcb, uint_t cbrtn);
+> 
+> /*
+>  *  SIOポートからのコールバックの禁止
+>  */
+> extern void		scif_dis_cbr(SIOPCB *siopcb, uint_t cbrtn);
+> 
+> /*
+>  *  SIOポートからの送信可能コールバック
+>  */
+> extern void		scif_irdy_snd(intptr_t exinf);
+> 
+> /*
+>  *  SIOポートからの受信通知コールバック
+>  */
+> extern void		scif_irdy_rcv(intptr_t exinf);
+> 
+> #endif /* TOPPERS_MACRO_ONLY */
+> #endif /* TOPPERS_OMIT_TECS */
+Only in ./arch/arm_gcc/rza1: tSCIF.c
+Only in ./arch/arm_gcc/rza1: tSCIF.cdl
+Only in ./arch/arm_gcc/rza1: tSIOPortRZA1.cdl
+Only in ./arch/arm_gcc/rza1: tSIOPortRZA1Main_inline.h
+Only in ./arch/arm_gcc: test
+Only in ./arch/arm_gcc/zynq7000: MANIFEST
+Only in ./arch/arm_gcc/zynq7000: Makefile.chip
+Only in ./arch/arm_gcc/zynq7000: chip_kernel.h
+Only in ./arch/arm_gcc/zynq7000: chip_kernel.trb
+Only in ./arch/arm_gcc/zynq7000: chip_kernel_impl.c
+Only in ./arch/arm_gcc/zynq7000: chip_kernel_impl.h
+Only in ./arch/arm_gcc/zynq7000: chip_rename.def
+Only in ./arch/arm_gcc/zynq7000: chip_rename.h
+Only in extension/non_tecs/arch/arm_gcc/zynq7000: chip_serial.c
+Only in extension/non_tecs/arch/arm_gcc/zynq7000: chip_serial.cfg
+Only in extension/non_tecs/arch/arm_gcc/zynq7000: chip_serial.h
+Only in ./arch/arm_gcc/zynq7000: chip_stddef.h
+Only in ./arch/arm_gcc/zynq7000: chip_timer.cfg
+Only in ./arch/arm_gcc/zynq7000: chip_timer.h
+Only in ./arch/arm_gcc/zynq7000: chip_unrename.h
+Only in ./arch/arm_gcc/zynq7000: tSIOPortZynq7000.cdl
+Only in ./arch/arm_gcc/zynq7000: tSIOPortZynq7000Main_inline.h
+Only in ./arch/arm_gcc/zynq7000: tXUartPs.c
+Only in ./arch/arm_gcc/zynq7000: tXUartPs.cdl
+Only in extension/non_tecs/arch/arm_gcc/zynq7000: xuartps.c
+diff -r ./arch/arm_gcc/zynq7000/xuartps.h extension/non_tecs/arch/arm_gcc/zynq7000/xuartps.h
+43c43
+<  *		XUartPsに関する定義
+---
+>  *		XUartPsに関する定義と簡易SIOドライバ
+49a50,53
+>  *		XUartPsに関する定義
+>  */
+> 
+> /*
+99a104,264
+> #ifdef TOPPERS_OMIT_TECS
+> /*
+>  *		XUartPs用 簡易SIOドライバ
+>  */
+> #include <sil.h>
+> 
+> /*
+>  *  SIOポート数の定義
+>  */
+> #define TNUM_SIOP		1		/* サポートするSIOポートの数 */
+> 
+> /*
+>  *  コールバックルーチンの識別番号
+>  */
+> #define SIO_RDY_SND		1U		/* 送信可能コールバック */
+> #define SIO_RDY_RCV		2U		/* 受信通知コールバック */
+> 
+> #ifndef TOPPERS_MACRO_ONLY
+> 
+> /*
+>  *  SIOポート管理ブロックの定義
+>  */
+> typedef struct sio_port_control_block	SIOPCB;
+> 
+> /*
+>  *  プリミティブな送信／受信関数
+>  */
+> 
+> /*
+>  *  受信バッファに文字があるか？
+>  */
+> Inline bool_t
+> xuartps_getready(uintptr_t base)
+> {
+> 	return((sil_rew_mem(XUARTPS_SR(base)) & XUARTPS_SR_RXEMPTY) == 0U);
+> }
+> 
+> /*
+>  *  送信バッファに空きがあるか？
+>  */
+> Inline bool_t
+> xuartps_putready(uintptr_t base)
+> {
+> 	return((sil_rew_mem(XUARTPS_SR(base)) & XUARTPS_SR_TXFULL) == 0U);
+> }
+> 
+> /*
+>  *  受信した文字の取出し
+>  */
+> Inline char
+> xuartps_getchar(uintptr_t base)
+> {
+> 	return((char) sil_rew_mem(XUARTPS_FIFO(base)));
+> }
+> 
+> /*
+>  *  送信する文字の書込み
+>  */
+> Inline void
+> xuartps_putchar(uintptr_t base, char c)
+> {
+> 	sil_wrw_mem(XUARTPS_FIFO(base), (uint32_t) c);
+> }
+> 
+> /*
+>  *  送信割込みイネーブル
+>  */
+> Inline void
+> xuartps_enable_send(uintptr_t base)
+> {
+> 	sil_wrw_mem(XUARTPS_IER(base), XUARTPS_IXR_TXEMPTY);
+> }
+> 
+> /*
+>  *  送信割込みディスエーブル
+>  */
+> Inline void
+> xuartps_disable_send(uintptr_t base)
+> {
+> 	sil_wrw_mem(XUARTPS_IDR(base), XUARTPS_IXR_TXEMPTY);
+> }
+> 
+> /*
+>  *  受信割込みイネーブル
+>  */
+> Inline void
+> xuartps_enable_receive(uintptr_t base)
+> {
+> 	sil_wrw_mem(XUARTPS_IER(base), XUARTPS_IXR_RXTRIG);
+> }
+> 
+> /*
+>  *  受信割込みディスエーブル
+>  */
+> Inline void
+> xuartps_disable_receive(uintptr_t base)
+> {
+> 	sil_wrw_mem(XUARTPS_IDR(base), XUARTPS_IXR_RXTRIG);
+> }
+> 
+> /*
+>  *  シリアルインタフェースドライバに提供する機能
+>  */
+> 
+> /*
+>  *  SIOドライバの初期化
+>  */
+> extern void		xuartps_initialize(void);
+> 
+> /*
+>  *  SIOドライバの終了処理
+>  */
+> extern void		xuartps_terminate(void);
+> 
+> /*
+>  *  SIOの割込みサービスルーチン
+>  */
+> extern void		xuartps_isr(ID siopid);
+> 
+> /*
+>  *  SIOポートのオープン
+>  */
+> extern SIOPCB	*xuartps_opn_por(ID siopid, intptr_t exinf);
+> 
+> /*
+>  *  SIOポートのクローズ
+>  */
+> extern void		xuartps_cls_por(SIOPCB *siopcb);
+> 
+> /*
+>  *  SIOポートへの文字送信
+>  */
+> extern bool_t	xuartps_snd_chr(SIOPCB *siopcb, char c);
+> 
+> /*
+>  *  SIOポートからの文字受信
+>  */
+> extern int_t	xuartps_rcv_chr(SIOPCB *siopcb);
+> 
+> /*
+>  *  SIOポートからのコールバックの許可
+>  */
+> extern void		xuartps_ena_cbr(SIOPCB *siopcb, uint_t cbrtn);
+> 
+> /*
+>  *  SIOポートからのコールバックの禁止
+>  */
+> extern void		xuartps_dis_cbr(SIOPCB *siopcb, uint_t cbrtn);
+> 
+> /*
+>  *  SIOポートからの送信可能コールバック
+>  */
+> extern void		xuartps_irdy_snd(intptr_t exinf);
+> 
+> /*
+>  *  SIOポートからの受信通知コールバック
+>  */
+> extern void		xuartps_irdy_rcv(intptr_t exinf);
+> 
+> #endif /* TOPPERS_MACRO_ONLY */
+> #endif /* TOPPERS_OMIT_TECS */
+Only in ./arch/arm_gcc/zynq7000: zynq7000.h
+Only in ./arch: gcc
+diff -r ./arch/simtimer/sim_timer.c extension/non_tecs/arch/simtimer/sim_timer.c
+476a477,499
+> 
+> /*
+>  *  拡張サービスコールとして登録するための関数
+>  */
+> #ifdef TOPPERS_OMIT_TECS
+> 
+> ER_UINT
+> extsvc_simtim_advance(intptr_t time, intptr_t par2, intptr_t par3,
+> 							intptr_t par4, intptr_t par5, ID cdmid)
+> {
+> 	simtim_advance((uint_t) time);
+> 	return((ER_UINT) 0U);
+> }
+> 
+> ER_UINT
+> extsvc_simtim_add(intptr_t time, intptr_t par2, intptr_t par3,
+> 							intptr_t par4, intptr_t par5, ID cdmid)
+> {
+> 	simtim_add((uint_t) time);
+> 	return((ER_UINT) 0U);
+> }
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+diff -r ./arch/simtimer/sim_timer.cfg extension/non_tecs/arch/simtimer/sim_timer.cfg
+4c4
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+9a10,16
+> #ifdef TOPPERS_OMIT_TECS
+> 	DEF_SVC(TFN_SIMTIM_ADVANCE, { TA_NULL, extsvc_simtim_advance,
+> 													SSZ_SIMTIM_ADVANCE });
+> 	DEF_SVC(TFN_SIMTIM_ADD, { TA_NULL, extsvc_simtim_add,
+> 													SSZ_SIMTIM_ADD });
+> #endif /* TOPPERS_OMIT_TECS */
+> 
+Only in ./arch/simtimer: sim_timer.h
+diff -r ./arch/simtimer/sim_timer_cntl.h extension/non_tecs/arch/simtimer/sim_timer_cntl.h
+46a47,65
+> #ifdef TOPPERS_OMIT_TECS
+> #include <kernel.h>
+> #include <extsvc_fncode.h>
+> 
+> /*
+>  *  拡張サービスコールのスタックサイズ
+>  */
+> #ifndef SSZ_SIMTIM_ADVANCE
+> #define SSZ_SIMTIM_ADVANCE		1024
+> #endif /* SSZ_SIMTIM_ADVANCE */
+> 
+> #ifndef SSZ_SIMTIM_ADD
+> #define SSZ_SIMTIM_ADD			1024
+> #endif /* SSZ_SIMTIM_ADD */
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+> 
+> #ifndef TOPPERS_OMIT_TECS
+> 
+59a79,116
+> #else /* TOPPERS_OMIT_TECS */
+> 
+> #ifndef TOPPERS_SVC_CALL
+> 
+> Inline void
+> simtim_advance(uint_t time)
+> {
+> 	(void) cal_svc(TFN_SIMTIM_ADVANCE, (intptr_t)(time), 0, 0, 0, 0);
+> }
+> 
+> Inline void
+> simtim_add(uint_t time)
+> {
+> 	(void) cal_svc(TFN_SIMTIM_ADVANCE, (intptr_t)(time), 0, 0, 0, 0);
+> }
+> 
+> #else /* TOPPERS_SVC_CALL */
+> 
+> #define simtim_advance	_kernel_simtim_advance
+> #define simtim_add		_kernel_simtim_add
+> 
+> extern void	simtim_advance(uint_t time);
+> extern void	simtim_add(uint_t time);
+> 
+> #endif /* TOPPERS_SVC_CALL */
+> 
+> /*
+>  *  拡張サービスコールとして登録するための関数
+>  */
+> extern ER_UINT	extsvc_simtim_advance(intptr_t time, intptr_t par2,
+> 									intptr_t par3, intptr_t par4,
+> 									intptr_t par5, ID cdmid) throw();
+> extern ER_UINT	extsvc_simtim_add(intptr_t time, intptr_t par2,
+> 									intptr_t par3, intptr_t par4,
+> 									intptr_t par5, ID cdmid) throw();
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+> 
+Only in ./arch/simtimer: tSimTimerCntl.c
+Only in ./arch/simtimer: tSimTimerCntl.cdl
+Only in ./arch/simtimer: tSimTimerCntlAdapter.c
+Only in ./arch/simtimer: tSimTimerCntlAdapter.cdl
+Only in ./arch: tracelog
+Only in .: cfg
+Only in .: cfg_test
+Only in .: configure.rb
+Only in .: doc
+Only in .: extension
+diff -r ./include/extsvc_fncode.h extension/non_tecs/include/extsvc_fncode.h
+5c5
+<  *  Copyright (C) 2006-2017 by Embedded and Real-Time Systems Laboratory
+---
+>  *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
+37c37
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+46a47,48
+> #ifndef TOPPERS_OMIT_TECS
+> 
+53a56,106
+> #else /* TOPPERS_OMIT_TECS */
+> 
+> /*
+>  *  システムログ機能
+>  */
+> #define TFN_SYSLOG_WRI_LOG		(1)
+> #define TFN_SYSLOG_REA_LOG		(2)
+> #define TFN_SYSLOG_MSK_LOG		(3)
+> #define TFN_SYSLOG_REF_LOG		(4)
+> #define TFN_SYSLOG_FLS_LOG		(5)
+> 
+> /*
+>  *  シリアルインタフェースドライバ
+>  */
+> #define TFN_SERIAL_OPN_POR		(7)
+> #define TFN_SERIAL_CLS_POR		(8)
+> #define TFN_SERIAL_REA_DAT		(9)
+> #define TFN_SERIAL_WRI_DAT		(10)
+> #define TFN_SERIAL_CTL_POR		(11)
+> #define TFN_SERIAL_REF_POR		(12)
+> 
+> /*
+>  *  システムログタスク
+>  */
+> #define TFN_LOGTASK_FLUSH		(14)
+> 
+> /*
+>  *  実行時間分布集計サービス
+>  */
+> #define TFN_INIT_HIST			(16)
+> #define TFN_BEGIN_MEASURE		(17)
+> #define TFN_END_MEASURE			(18)
+> #define TFN_PRINT_HIST			(19)
+> 
+> /*
+>  *  テストプログラム用ライブラリ
+>  */
+> #define TFN_TEST_START					(21)
+> #define TFN_CHECK_POINT					(22)
+> #define TFN_CHECK_FINISH				(23)
+> #define TFN_CHECK_ASSERT_ERROR			(24)
+> #define TFN_CHECK_ERCD_ERROR			(25)
+> #define TFN_GET_INTERRUPT_PRIORITY_MASK	(26)
+> 
+> /*
+>  *  タイマドライバシミュレータ
+>  */
+> #define TFN_SIMTIM_ADVANCE				(28)
+> #define TFN_SIMTIM_ADD					(29)
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+Only in ./include: itron.h
+Only in ./include: kernel.h
+Only in ./include: kernel_fncode.h
+Only in ./include: log_output.h
+Only in ./include: queue.h
+Only in ./include: sil.h
+Only in ./include: svc_call.h
+Only in ./include: t_stddef.h
+Only in ./include: t_stdlib.h
+diff -r ./include/t_syslog.h extension/non_tecs/include/t_syslog.h
+8c8
+<  *  Copyright (C) 2004-2019 by Embedded and Real-Time Systems Laboratory
+---
+>  *  Copyright (C) 2004-2018 by Embedded and Real-Time Systems Laboratory
+40c40
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+68a69
+> #ifndef TOPPERS_OMIT_TECS
+69a71,74
+> #else /* TOPPERS_OMIT_TECS */
+> #include <kernel.h>
+> #include <extsvc_fncode.h>
+> #endif /* TOPPERS_OMIT_TECS */
+83,84c88,89
+< #define LOG_TYPE_CYC		UINT_C(0x13)	/* 周期通知 */
+< #define LOG_TYPE_ALM		UINT_C(0x14)	/* アラーム通知 */
+---
+> #define LOG_TYPE_CYC		UINT_C(0x13)	/* 周期ハンドラ */
+> #define LOG_TYPE_ALM		UINT_C(0x14)	/* アラームハンドラ */
+90,91d94
+< #define LOG_TYPE_SCYC		UINT_C(0x51)	/* システム周期 */
+< #define LOG_TYPE_TWD		UINT_C(0x52)	/* タイムウィンドウ */
+94d96
+< #define LOG_START			UINT_C(0x00)	/* 開始 */
+144a147,148
+> #ifndef TOPPERS_OMIT_TECS
+> 
+146a151,161
+> #else /* TOPPERS_OMIT_TECS */
+> 
+> Inline ER
+> syslog_wri_log(uint_t prio, const SYSLOG *p_syslog)
+> {
+> 	return((ER) cal_svc(TFN_SYSLOG_WRI_LOG, (intptr_t) prio,
+> 										(intptr_t) p_syslog, 0, 0, 0));
+> }
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+> 
+157a173,174
+> #ifndef TOPPERS_OMIT_TECS
+> 
+162a180,188
+> #else /* TOPPERS_OMIT_TECS */
+> 
+> extern ER	_syslog_wri_log(uint_t prio, const SYSLOG *p_syslog) throw();
+> 
+> #define syslog_write(prio, p_syslog) \
+> 						((void) _syslog_wri_log(prio, p_syslog))
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+> 
+Only in .: kernel
+Only in .: library
+Only in ./sample: Makefile
+Only in ./sample: Makefile_mml
+Only in ./sample: sample1.c
+Only in ./sample: sample1.cdl
+diff -r ./sample/sample1.cfg extension/non_tecs/sample/sample1.cfg
+4c4
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+5a6
+> #ifndef TOPPERS_OMIT_TECS
+6a8,13
+> #else /* TOPPERS_OMIT_TECS */
+> INCLUDE("syssvc/syslog.cfg");
+> INCLUDE("syssvc/banner.cfg");
+> INCLUDE("syssvc/serial.cfg");
+> INCLUDE("syssvc/logtask.cfg");
+> #endif /* TOPPERS_OMIT_TECS */
+53a61
+> #ifndef TOPPERS_OMIT_TECS
+54a63
+> #endif /* TOPPERS_OMIT_TECS */
+Only in ./sample: sample1.h
+Only in ./sample: tSample2.c
+Only in ./sample: tSample2.cdl
+Only in ./sample: tSample2.cfg
+Only in ./sample: tSample2.h
+Only in extension/non_tecs/syssvc: banner.c
+Only in extension/non_tecs/syssvc: banner.cfg
+Only in extension/non_tecs/syssvc: banner.h
+Only in extension/non_tecs/syssvc: histogram.c
+Only in extension/non_tecs/syssvc: histogram.cfg
+diff -r ./syssvc/histogram.h extension/non_tecs/syssvc/histogram.h
+2,3c2,4
+<  *  TOPPERS Software
+<  *      Toyohashi Open Platform for Embedded Real-Time Systems
+---
+>  *  TOPPERS/HRP Kernel
+>  *      Toyohashi Open Platform for Embedded Real-Time Systems/
+>  *      High Reliable system Profile Kernel
+37c38
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+52a54,76
+> #ifdef TOPPERS_OMIT_TECS
+> 
+> /*
+>  *  実行時間分布集計サービスの拡張サービスコールのスタックサイズ
+>  */ 
+> #ifndef SSZ_INIT_HIST
+> #define SSZ_INIT_HIST		1024
+> #endif /* SSZ_INIT_HIST */
+> 
+> #ifndef SSZ_BEGIN_MEASURE
+> #define SSZ_BEGIN_MEASURE	1024
+> #endif /* SSZ_BEGIN_MEASURE */
+> 
+> #ifndef SSZ_END_MEASURE
+> #define SSZ_END_MEASURE		1024
+> #endif /* SSZ_END_MEASURE */
+> 
+> #ifndef SSZ_PRINT_HIST
+> #define SSZ_PRINT_HIST		1024
+> #endif /* SSZ_PRINT_HIST */
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+> 
+55a80,81
+> #ifndef TOPPERS_OMIT_TECS
+> 
+60a87,150
+> #else /* TOPPERS_OMIT_TECS */
+> 
+> extern ER	_init_hist(ID histid);
+> extern ER	_begin_measure(ID histid);
+> extern ER	_end_measure(ID histid);
+> extern ER	_print_hist(ID histid);
+> 
+> /*
+>  *  実行時間分布集計サービスのサービスコールを呼び出すための定義
+>  */
+> #ifndef TOPPERS_SVC_CALL
+> 
+> Inline ER
+> init_hist(ID histid)
+> {
+> 	return((ER) cal_svc(TFN_INIT_HIST, (intptr_t) histid, 0, 0, 0, 0));
+> }
+> 
+> Inline ER
+> begin_measure(ID histid)
+> {
+> 	return((ER) cal_svc(TFN_BEGIN_MEASURE, (intptr_t) histid, 0, 0, 0, 0));
+> }
+> 
+> Inline ER
+> end_measure(ID histid)
+> {
+> 	return((ER) cal_svc(TFN_END_MEASURE, (intptr_t) histid, 0, 0, 0, 0));
+> }
+> 
+> Inline ER
+> print_hist(ID histid)
+> {
+> 	return((ER) cal_svc(TFN_PRINT_HIST, (intptr_t) histid, 0, 0, 0, 0));
+> }
+> 
+> #else /* TOPPERS_SVC_CALL */
+> 
+> #define init_hist			_init_hist
+> #define begin_measure		_begin_measure
+> #define end_measure			_end_measure
+> #define print_hist			_print_hist
+> 
+> #endif /* TOPPERS_SVC_CALL */
+> 
+> /*
+>  *  実行時間分布集計サービスのサービスコールを拡張サービスコールとして
+>  *  登録するための関数
+>  */
+> extern ER_UINT	extsvc_init_hist(intptr_t histid, intptr_t par2,
+> 									intptr_t par3, intptr_t par4,
+> 									intptr_t par5, ID cdmid) throw();
+> extern ER_UINT	extsvc_begin_measure(intptr_t histid, intptr_t par2,
+> 									intptr_t par3, intptr_t par4,
+> 									intptr_t par5, ID cdmid) throw();
+> extern ER_UINT	extsvc_end_measure(intptr_t histid, intptr_t par2,
+> 									intptr_t par3, intptr_t par4,
+> 									intptr_t par5, ID cdmid) throw();
+> extern ER_UINT	extsvc_print_hist(intptr_t histid, intptr_t par2,
+> 									intptr_t par3, intptr_t par4,
+> 									intptr_t par5, ID cdmid) throw();
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+> 
+Only in extension/non_tecs/syssvc: logtask.c
+Only in extension/non_tecs/syssvc: logtask.cfg
+Only in extension/non_tecs/syssvc: logtask.h
+Only in extension/non_tecs/syssvc: serial.c
+Only in extension/non_tecs/syssvc: serial.cfg
+diff -r ./syssvc/serial.h extension/non_tecs/syssvc/serial.h
+2,3c2,4
+<  *  TOPPERS Software
+<  *      Toyohashi Open Platform for Embedded Real-Time Systems
+---
+>  *  TOPPERS/HRP Kernel
+>  *      Toyohashi Open Platform for Embedded Real-Time Systems/
+>  *      High Reliable system Profile Kernel
+7c8
+<  *  Copyright (C) 2004-2015 by Embedded and Real-Time Systems Laboratory
+---
+>  *  Copyright (C) 2004-2018 by Embedded and Real-Time Systems Laboratory
+39c40
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+54a56,88
+> #ifdef TOPPERS_OMIT_TECS
+> #include <extsvc_fncode.h>
+> #include "target_syssvc.h"
+> 
+> /*
+>  *  シリアルインタフェースドライバの拡張サービスコールのスタックサイズ
+>  */ 
+> #ifndef SSZ_SERIAL_OPN_POR
+> #define SSZ_SERIAL_OPN_POR	1024
+> #endif /* SSZ_SERIAL_OPN_POR */
+> 
+> #ifndef SSZ_SERIAL_CLS_POR
+> #define SSZ_SERIAL_CLS_POR	1024
+> #endif /* SSZ_SERIAL_CLS_POR */
+> 
+> #ifndef SSZ_SERIAL_REA_DAT
+> #define SSZ_SERIAL_REA_DAT	1024
+> #endif /* SSZ_SERIAL_REA_DAT */
+> 
+> #ifndef SSZ_SERIAL_WRI_DAT
+> #define SSZ_SERIAL_WRI_DAT	1024
+> #endif /* SSZ_SERIAL_WRI_DAT */
+> 
+> #ifndef SSZ_SERIAL_CTL_POR
+> #define SSZ_SERIAL_CTL_POR	1024
+> #endif /* SSZ_SERIAL_CTL_POR */
+> 
+> #ifndef SSZ_SERIAL_REF_POR
+> #define SSZ_SERIAL_REF_POR	1024
+> #endif /* SSZ_SERIAL_REF_POR */
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+> 
+65a100,101
+> #ifndef TOPPERS_OMIT_TECS
+> 
+72a109,119
+> #else /* TOPPERS_OMIT_TECS */
+> 
+> extern ER		_serial_opn_por(ID portid) throw();
+> extern ER		_serial_cls_por(ID portid) throw();
+> extern ER_UINT	_serial_rea_dat(ID portid, char *buf, uint_t len) throw();
+> extern ER_UINT	_serial_wri_dat(ID portid, const char *buf, uint_t len) throw();
+> extern ER		_serial_ctl_por(ID portid, uint_t ioctl) throw();
+> extern ER		_serial_ref_por(ID portid, T_SERIAL_RPOR *pk_rpor) throw();
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+> 
+84a132,223
+> #ifdef TOPPERS_OMIT_TECS
+> /*
+>  *  シリアルインタフェースドライバの初期化ルーチン
+>  */
+> extern void		serial_initialize(intptr_t exinf) throw();
+> 
+> /*
+>  *  シリアルインタフェースドライバからの未送信文字の取出し
+>  */
+> extern bool_t	serial_get_chr(ID portid, char *p_c) throw();
+> 
+> /*
+>  *  シリアルインタフェースドライバのサービスコールを呼び出すための定義
+>  */
+> #ifndef TOPPERS_SVC_CALL
+> 
+> Inline ER
+> serial_opn_por(ID portid)
+> {
+> 	return((ER) cal_svc(TFN_SERIAL_OPN_POR, (intptr_t) portid, 0, 0, 0, 0));
+> }
+> 
+> Inline ER
+> serial_cls_por(ID portid)
+> {
+> 	return((ER) cal_svc(TFN_SERIAL_CLS_POR, (intptr_t) portid, 0, 0, 0, 0));
+> }
+> 
+> Inline ER_UINT
+> serial_rea_dat(ID portid, char *buf, uint_t len)
+> {
+> 	return(cal_svc(TFN_SERIAL_REA_DAT, (intptr_t) portid, (intptr_t) buf,
+> 													(intptr_t) len, 0, 0));
+> }
+> 
+> Inline ER_UINT
+> serial_wri_dat(ID portid, const char *buf, uint_t len)
+> {
+> 	return(cal_svc(TFN_SERIAL_WRI_DAT, (intptr_t) portid, (intptr_t) buf,
+> 													(intptr_t) len, 0, 0));
+> }
+> 
+> Inline ER
+> serial_ctl_por(ID portid, uint_t ioctl)
+> {
+> 	return((ER) cal_svc(TFN_SERIAL_CTL_POR, (intptr_t) portid,
+> 												(intptr_t) ioctl, 0, 0, 0));
+> }
+> 
+> Inline ER
+> serial_ref_por(ID portid, T_SERIAL_RPOR *pk_rpor)
+> {
+> 	return((ER) cal_svc(TFN_SERIAL_REF_POR, (intptr_t) portid,
+> 											(intptr_t) pk_rpor, 0, 0, 0));
+> }
+> 
+> #else /* TOPPERS_SVC_CALL */
+> 
+> #define serial_opn_por		_serial_opn_por
+> #define serial_cls_por		_serial_cls_por
+> #define serial_rea_dat		_serial_rea_dat
+> #define serial_wri_dat		_serial_wri_dat
+> #define serial_ctl_por		_serial_ctl_por
+> #define serial_ref_por		_serial_ref_por
+> 
+> #endif /* TOPPERS_SVC_CALL */
+> 
+> /*
+>  *  シリアルインタフェースドライバのサービスコールを拡張サービスコール
+>  *  として登録するための関数
+>  */
+> extern ER_UINT	extsvc_serial_opn_por(intptr_t portid, intptr_t par2,
+> 									intptr_t par3, intptr_t par4,
+> 									intptr_t par5, ID cdmid) throw();
+> extern ER_UINT	extsvc_serial_cls_por(intptr_t portid, intptr_t par2,
+> 									intptr_t par3, intptr_t par4,
+> 									intptr_t par5, ID cdmid) throw();
+> extern ER_UINT	extsvc_serial_rea_dat(intptr_t portid, intptr_t buf,
+> 									intptr_t len, intptr_t par4,
+> 									intptr_t par5, ID cdmid) throw();
+> extern ER_UINT	extsvc_serial_wri_dat(intptr_t portid, intptr_t buf,
+> 									intptr_t len, intptr_t par4,
+> 									intptr_t par5, ID cdmid) throw();
+> extern ER_UINT	extsvc_serial_ctl_por(intptr_t portid, intptr_t ioctl,
+> 									intptr_t par3, intptr_t par4,
+> 									intptr_t par5, ID cdmid) throw();
+> extern ER_UINT	extsvc_serial_ref_por(intptr_t portid, intptr_t pk_rpor,
+> 									intptr_t par3, intptr_t par4,
+> 									intptr_t par5, ID cdmid) throw();
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+> 
+Only in extension/non_tecs/syssvc: syslog.c
+Only in extension/non_tecs/syssvc: syslog.cfg
+diff -r ./syssvc/syslog.h extension/non_tecs/syssvc/syslog.h
+2,3c2,4
+<  *  TOPPERS Software
+<  *      Toyohashi Open Platform for Embedded Real-Time Systems
+---
+>  *  TOPPERS/HRP Kernel
+>  *      Toyohashi Open Platform for Embedded Real-Time Systems/
+>  *      High Reliable system Profile Kernel
+7c8
+<  *  Copyright (C) 2005-2015 by Embedded and Real-Time Systems Laboratory
+---
+>  *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
+39c40
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+55a57,85
+> #ifdef TOPPERS_OMIT_TECS
+> #include <extsvc_fncode.h>
+> #include "target_syssvc.h"
+> 
+> /*
+>  *  システムログ機能の拡張サービスコールのスタックサイズ
+>  */ 
+> #ifndef SSZ_SYSLOG_WRI_LOG
+> #define SSZ_SYSLOG_WRI_LOG	1024
+> #endif /* SSZ_SYSLOG_WRI_LOG */
+> 
+> #ifndef SSZ_SYSLOG_REA_LOG
+> #define SSZ_SYSLOG_REA_LOG	1024
+> #endif /* SSZ_SYSLOG_REA_LOG */
+> 
+> #ifndef SSZ_SYSLOG_MSK_LOG
+> #define SSZ_SYSLOG_MSK_LOG	1024
+> #endif /* SSZ_SYSLOG_MSK_LOG */
+> 
+> #ifndef SSZ_SYSLOG_REF_LOG
+> #define SSZ_SYSLOG_REF_LOG	1024
+> #endif /* SSZ_SYSLOG_REF_LOG */
+> 
+> #ifndef SSZ_SYSLOG_FLS_LOG
+> #define SSZ_SYSLOG_FLS_LOG	1024
+> #endif /* SSZ_SYSLOG_FLS_LOG */
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+> 
+74a105,106
+> #ifndef TOPPERS_OMIT_TECS
+> 
+80a113,186
+> #else /* TOPPERS_OMIT_TECS */
+> 
+> extern ER		_syslog_wri_log(uint_t prio, const SYSLOG *p_syslog) throw();
+> extern ER_UINT	_syslog_rea_log(SYSLOG *p_syslog) throw();
+> extern ER		_syslog_msk_log(uint_t logmask, uint_t lowmask) throw();
+> extern ER		_syslog_ref_log(T_SYSLOG_RLOG *pk_rlog) throw();
+> extern ER		_syslog_fls_log(void) throw();
+> 
+> /*
+>  *  システムログ機能の初期化
+>  */
+> extern void	syslog_initialize(intptr_t exinf) throw();
+> 
+> /*
+>  *  システムログ機能のサービスコールを呼び出すための定義
+>  */
+> #ifndef TOPPERS_SVC_CALL
+> 
+> Inline ER_UINT
+> syslog_rea_log(SYSLOG *p_syslog)
+> {
+> 	return(cal_svc(TFN_SYSLOG_REA_LOG, (intptr_t) p_syslog, 0, 0, 0, 0));
+> }
+> 
+> Inline ER
+> syslog_msk_log(intptr_t logmask, intptr_t lowmask)
+> {
+> 	return((ER) cal_svc(TFN_SYSLOG_MSK_LOG, (intptr_t) logmask,
+> 											(intptr_t) lowmask, 0, 0, 0));
+> }
+> 
+> Inline ER
+> syslog_ref_log(intptr_t pk_rlog)
+> {
+> 	return((ER) cal_svc(TFN_SYSLOG_REF_LOG, (intptr_t) pk_rlog, 0, 0, 0, 0));
+> }
+> 
+> Inline ER
+> syslog_fls_log(void)
+> {
+> 	return((ER) cal_svc(TFN_SYSLOG_FLS_LOG, 0, 0, 0, 0, 0));
+> }
+> 
+> #else /* TOPPERS_SVC_CALL */
+> 
+> #define syslog_rea_log		_syslog_rea_log
+> #define syslog_msk_log		_syslog_msk_log
+> #define syslog_ref_log		_syslog_ref_log
+> #define syslog_fls_log		_syslog_fls_log
+> 
+> #endif /* TOPPERS_SVC_CALL */
+> 
+> /*
+>  *  システムログ機能のサービスコールを拡張サービスコールとして登録する
+>  *  ための関数
+>  */
+> extern ER_UINT	extsvc_syslog_wri_log(intptr_t prio, intptr_t p_syslog,
+> 									intptr_t par3, intptr_t par4,
+> 									intptr_t par5, ID cdmid) throw();
+> extern ER_UINT	extsvc_syslog_rea_log(intptr_t p_syslog, intptr_t par2,
+> 									intptr_t par3, intptr_t par4,
+> 									intptr_t par5, ID cdmid) throw();
+> extern ER_UINT	extsvc_syslog_msk_log(intptr_t logmask, intptr_t lowmask,
+> 									intptr_t par3, intptr_t par4,
+> 									intptr_t par5, ID cdmid) throw();
+> extern ER_UINT	extsvc_syslog_ref_log(intptr_t pk_rlog, intptr_t par2,
+> 									intptr_t par3, intptr_t par4,
+> 									intptr_t par5, ID cdmid) throw();
+> extern ER_UINT	extsvc_syslog_fls_log(intptr_t par1, intptr_t par2,
+> 									intptr_t par3, intptr_t par4,
+> 									intptr_t par5, ID cdmid) throw();
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+> 
+Only in ./syssvc: tBanner.cdl
+Only in ./syssvc: tBannerMain.c
+Only in ./syssvc: tHistogram.c
+Only in ./syssvc: tHistogram.cdl
+Only in ./syssvc: tHistogram.h
+Only in ./syssvc: tHistogramAdapter.c
+Only in ./syssvc: tHistogramAdapter.cdl
+Only in ./syssvc: tLogTask.cdl
+Only in ./syssvc: tLogTaskMain.c
+Only in ./syssvc: tPutLogSIOPort.c
+Only in ./syssvc: tPutLogSIOPort.cdl
+Only in ./syssvc: tSerialAdapter.c
+Only in ./syssvc: tSerialAdapter.cdl
+Only in ./syssvc: tSerialPort.cdl
+Only in ./syssvc: tSerialPortMain.c
+Only in ./syssvc: tSysLog.c
+Only in ./syssvc: tSysLog.cdl
+Only in ./syssvc: tSysLogAdapter.c
+Only in ./syssvc: tSysLogAdapter.cdl
+Only in ./syssvc: tTestService.c
+Only in ./syssvc: tTestService.cdl
+Only in ./syssvc: tTestServiceAdapter.c
+Only in ./syssvc: tTestServiceAdapter.cdl
+Only in extension/non_tecs/syssvc: test_svc.c
+Only in extension/non_tecs/syssvc: test_svc.cfg
+diff -r ./syssvc/test_svc.h extension/non_tecs/syssvc/test_svc.h
+2,3c2,4
+<  *  TOPPERS Software
+<  *      Toyohashi Open Platform for Embedded Real-Time Systems
+---
+>  *  TOPPERS/HRP Kernel
+>  *      Toyohashi Open Platform for Embedded Real-Time Systems/
+>  *      High Reliable system Profile Kernel
+37c38
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+53a55,91
+> #ifdef TOPPERS_OMIT_TECS
+> #include <extsvc_fncode.h>
+> #include "target_syssvc.h"
+> 
+> /*
+>  *  テストプログラム用ライブラリの拡張サービスコールのスタックサイズ
+>  */ 
+> #ifndef SSZ_TEST_START
+> #define SSZ_TEST_START			1024
+> #endif /* SSZ_TEST_START */
+> 
+> #ifndef SSZ_SET_BIT_FUNC
+> #define SSZ_SET_BIT_FUNC		1024
+> #endif /* SSZ_SET_BIT_FUNC */
+> 
+> #ifndef SSZ_CHECK_POINT
+> #define SSZ_CHECK_POINT			1024
+> #endif /* SSZ_CHECK_POINT */
+> 
+> #ifndef SSZ_CHECK_FINISH
+> #define SSZ_CHECK_FINISH		1024
+> #endif /* SSZ_CHECK_FINISH */
+> 
+> #ifndef SSZ_CHECK_ASSERT_ERROR
+> #define SSZ_CHECK_ASSERT_ERROR	1024
+> #endif /* SSZ_CHECK_ASSERT_ERROR */
+> 
+> #ifndef SSZ_CHECK_ERCD_ERROR
+> #define SSZ_CHECK_ERCD_ERROR	1024
+> #endif /* SSZ_CHECK_ERCD_ERROR */
+> 
+> #ifndef SSZ_GET_INTERRUPT_PRIORITY_MASK
+> #define SSZ_GET_INTERRUPT_PRIORITY_MASK		1024
+> #endif /* SSZ_CHECK_IPM */
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+> 
+56a95,96
+> #ifndef TOPPERS_OMIT_TECS
+> 
+63a104,168
+> #else /* TOPPERS_OMIT_TECS */
+> 
+> extern void	_test_start(const char *progname);
+> extern void	_check_point(uint_t count);
+> extern void	_check_finish(uint_t count);
+> extern void	_check_assert_error(const char *expr, const char *file, int_t line);
+> extern void	_check_ercd_error(ER ercd, const char *file, int_t line);
+> extern ER	_get_interrupt_priority_mask(PRI *p_ipm);
+> 
+> /*
+>  *  テストプログラム用サービスのサービスコールを呼び出すための定義
+>  */
+> #ifndef TOPPERS_SVC_CALL
+> 
+> Inline void
+> test_start(char *progname)
+> {
+> 	(void) cal_svc(TFN_TEST_START, (intptr_t) progname, 0, 0, 0, 0);
+> }
+> 
+> Inline void
+> check_point(uint_t count)
+> {
+> 	(void) cal_svc(TFN_CHECK_POINT, (intptr_t) count, 0, 0, 0, 0);
+> }
+> 
+> Inline void
+> check_finish(uint_t count)
+> {
+> 	(void) cal_svc(TFN_CHECK_FINISH, (intptr_t) count, 0, 0, 0, 0);
+> }
+> 
+> Inline void
+> check_assert_error(const char *expr, const char *file, int_t line)
+> {
+> 	(void) cal_svc(TFN_CHECK_ASSERT_ERROR, (intptr_t) expr,
+> 								(intptr_t) file, (intptr_t) line, 0, 0);
+> }
+> 
+> Inline void
+> check_ercd_error(ER ercd, const char *file, int_t line)
+> {
+> 	(void) cal_svc(TFN_CHECK_ERCD_ERROR, (intptr_t) ercd,
+> 								(intptr_t) file, (intptr_t) line, 0, 0);
+> }
+> 
+> Inline ER
+> get_interrupt_priority_mask(PRI *p_intpri)
+> {
+> 	return(cal_svc(TFN_GET_INTERRUPT_PRIORITY_MASK,
+> 									(intptr_t) p_intpri, 0, 0, 0, 0));
+> }
+> 
+> #else /* TOPPERS_SVC_CALL */
+> 
+> #define test_start					_test_start
+> #define check_point					_check_point
+> #define check_finish				_check_finish
+> #define check_assert_error			_check_assert_error
+> #define check_ercd_error			_check_ercd_error
+> #define get_interrupt_priority_mask	_get_interrupt_priority_mask
+> 
+> #endif /* TOPPERS_SVC_CALL */
+> #endif /* TOPPERS_OMIT_TECS */
+> 
+99a205,227
+> /*
+>  *  テストプログラム用サービスのサービスコールを拡張サービスコールとし
+>  *  て登録するための関数
+>  */
+> extern ER_UINT	extsvc_test_start(intptr_t progname, intptr_t par2,
+> 									intptr_t par3, intptr_t par4,
+> 									intptr_t par5, ID cdmid) throw();
+> extern ER_UINT	extsvc_check_point(intptr_t count, intptr_t par2,
+> 									intptr_t par3, intptr_t par4,
+> 									intptr_t par5, ID cdmid) throw();
+> extern ER_UINT	extsvc_check_finish(intptr_t count, intptr_t par2,
+> 									intptr_t par3, intptr_t par4,
+> 									intptr_t par5, ID cdmid) throw();
+> extern ER_UINT	extsvc_check_assert_error(intptr_t expr, intptr_t file,
+> 									intptr_t line, intptr_t par4,
+> 									intptr_t par5, ID cdmid) throw();
+> extern ER_UINT	extsvc_check_ercd_error(intptr_t ercd, intptr_t file,
+> 									intptr_t line, intptr_t par4,
+> 									intptr_t par5, ID cdmid) throw();
+> extern ER_UINT	extsvc_get_interrupt_priority_mask(intptr_t p_intpri,
+> 									intptr_t par2, intptr_t par3, intptr_t par4,
+> 									intptr_t par5, ID cdmid) throw();
+> 
+Only in ./target/ct11mpcore_gcc: E_PACKAGE
+Only in ./target/ct11mpcore_gcc: MANIFEST
+Only in ./target/ct11mpcore_gcc: Makefile.target
+Only in ./target/ct11mpcore_gcc: ct11mpcore.h
+Only in ./target/ct11mpcore_gcc: sp804.h
+Only in ./target/ct11mpcore_gcc: tSIOPortCT11MPCore.cdl
+Only in ./target/ct11mpcore_gcc: tSIOPortCT11MPCoreMain_inline.h
+Only in ./target/ct11mpcore_gcc: target.cdl
+Only in ./target/ct11mpcore_gcc: target_cfg1_out.h
+Only in ./target/ct11mpcore_gcc: target_check.trb
+Only in ./target/ct11mpcore_gcc: target_kernel.cfg
+Only in ./target/ct11mpcore_gcc: target_kernel.h
+Only in ./target/ct11mpcore_gcc: target_kernel.trb
+diff -r ./target/ct11mpcore_gcc/target_kernel_impl.c extension/non_tecs/target/ct11mpcore_gcc/target_kernel_impl.c
+38c38
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+51c51,54
+<  *
+---
+>  */
+> #ifndef TOPPERS_OMIT_TECS
+> 
+> /*
+55a59,65
+> #else /* TOPPERS_OMIT_TECS */
+> 
+> extern void	sio_initialize(intptr_t exinf);
+> extern void	target_fput_initialize(void);
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+> 
+85a96,98
+> #else /* TOPPERS_OMIT_TECS */
+> 	sio_initialize(0);
+> 	target_fput_initialize();
+123a137,184
+> 
+> #ifdef TOPPERS_OMIT_TECS
+> /*
+>  *		システムログの低レベル出力（本来は別のファイルにすべき）
+>  */
+> 
+> #include "target_syssvc.h"
+> #include "target_serial.h"
+> 
+> /*
+>  *  低レベル出力用のSIOポート管理ブロック
+>  */
+> static SIOPCB	*p_siopcb_target_fput;
+> 
+> /*
+>  *  SIOポートの初期化
+>  */
+> void
+> target_fput_initialize(void)
+> {
+> 	p_siopcb_target_fput = uart_pl011_opn_por(SIOPID_FPUT, 0);
+> }
+> 
+> /*
+>  *  SIOポートへのポーリング出力
+>  */
+> static void
+> ct11mpcore_uart_fput(char c)
+> {
+> 	/*
+> 	 *  送信できるまでポーリング
+> 	 */
+> 	while (!(uart_pl011_snd_chr(p_siopcb_target_fput, c))) ;
+> }
+> 
+> /*
+>  *  SIOポートへの文字出力
+>  */
+> void
+> target_fput_log(char c)
+> {
+> 	if (c == '\n') {
+> 		ct11mpcore_uart_fput('\r');
+> 	}
+> 	ct11mpcore_uart_fput(c);
+> }
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+Only in ./target/ct11mpcore_gcc: target_kernel_impl.h
+Only in ./target/ct11mpcore_gcc: target_mem.cfg
+Only in ./target/ct11mpcore_gcc: target_mem.trb
+Only in ./target/ct11mpcore_gcc: target_opt.trb
+Only in ./target/ct11mpcore_gcc: target_rename.def
+Only in ./target/ct11mpcore_gcc: target_rename.h
+Only in extension/non_tecs/target/ct11mpcore_gcc: target_serial.c
+Only in extension/non_tecs/target/ct11mpcore_gcc: target_serial.cfg
+Only in extension/non_tecs/target/ct11mpcore_gcc: target_serial.h
+Only in ./target/ct11mpcore_gcc: target_sil.h
+Only in ./target/ct11mpcore_gcc: target_stddef.h
+Only in ./target/ct11mpcore_gcc: target_svc.h
+diff -r ./target/ct11mpcore_gcc/target_syssvc.h extension/non_tecs/target/ct11mpcore_gcc/target_syssvc.h
+8c8
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+13a14,57
+> #ifdef TOPPERS_OMIT_TECS
+> 
+> #include "ct11mpcore.h"
+> 
+> /*
+>  *  起動メッセージのターゲットシステム名
+>  */
+> #define TARGET_NAME    "ARM CT11MPCore"
+> 
+> /*
+>  *  システムログの低レベル出力のための文字出力
+>  *
+>  *  ターゲット依存の方法で，文字cを表示/出力/保存する．
+>  */
+> extern void	target_fput_log(char c);
+> 
+> /*
+>  *  シリアルポートの数
+>  */
+> #define TNUM_PORT		1		/* サポートするシリアルポートの数 */
+> 
+> /*
+>  *  SIOドライバで使用するUARTに関する設定
+>  */
+> #define SIO_UART_BASE	EB_UART0_BASE		/* UARTのベース番地 */
+> #define SIO_UART_IBRD	EB_UART_IBRD_38400	/* ボーレート設定値（整数部）*/
+> #define SIO_UART_FBRD	EB_UART_FBRD_38400	/* ボーレート設定値（小数部）*/
+> #define SIO_UART_LCR_H	UART_LCR_H_WLEN8	/* ライン制御レジスタの設定値 */
+> 
+> /*
+>  *  SIO割込みを登録するための定義
+>  */
+> #define INTNO_SIO		EB_IRQNO_UART0		/* UART割込み番号 */
+> #define ISRPRI_SIO		1					/* UART ISR優先度 */
+> #define INTPRI_SIO		(-2)				/* UART割込み優先度 */
+> #define INTATR_SIO		TA_NULL				/* UART割込み属性 */
+> 
+> /*
+>  *  低レベル出力で使用するSIOポート
+>  */
+> #define SIOPID_FPUT		1
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+> 
+Only in ./target/ct11mpcore_gcc: target_test.h
+Only in ./target/ct11mpcore_gcc: target_timer.c
+Only in ./target/ct11mpcore_gcc: target_timer.cfg
+Only in ./target/ct11mpcore_gcc: target_timer.h
+Only in ./target/ct11mpcore_gcc: target_unrename.h
+Only in ./target/ct11mpcore_gcc: target_user.txt
+Only in ./target/dummy_gcc: MANIFEST
+Only in ./target/dummy_gcc: Makefile.target
+Only in ./target/dummy_gcc: dummy.h
+Only in ./target/dummy_gcc: start.c
+Only in ./target/dummy_gcc: tSIOPortDummy.cdl
+Only in ./target/dummy_gcc: tSIOPortDummyMain.c
+Only in ./target/dummy_gcc: target.cdl
+Only in ./target/dummy_gcc: target_cfg1_out.h
+Only in ./target/dummy_gcc: target_check.trb
+Only in ./target/dummy_gcc: target_kernel.cfg
+Only in ./target/dummy_gcc: target_kernel.h
+Only in ./target/dummy_gcc: target_kernel.trb
+Only in ./target/dummy_gcc: target_kernel_impl.c
+Only in ./target/dummy_gcc: target_kernel_impl.h
+Only in ./target/dummy_gcc: target_ldscript.trb
+Only in ./target/dummy_gcc: target_mem.cfg
+Only in ./target/dummy_gcc: target_mem.trb
+Only in ./target/dummy_gcc: target_offset.trb
+Only in ./target/dummy_gcc: target_opt.trb
+Only in ./target/dummy_gcc: target_rename.def
+Only in ./target/dummy_gcc: target_rename.h
+Only in extension/non_tecs/target/dummy_gcc: target_serial.c
+Only in extension/non_tecs/target/dummy_gcc: target_serial.cfg
+Only in extension/non_tecs/target/dummy_gcc: target_serial.h
+Only in ./target/dummy_gcc: target_sil.h
+Only in ./target/dummy_gcc: target_stddef.h
+Only in ./target/dummy_gcc: target_svc.h
+Only in ./target/dummy_gcc: target_sym.def
+diff -r ./target/dummy_gcc/target_syssvc.h extension/non_tecs/target/dummy_gcc/target_syssvc.h
+13a14,38
+> #ifdef TOPPERS_OMIT_TECS
+> 
+> /*
+>  *  起動メッセージのターゲットシステム名
+>  */
+> #define TARGET_NAME	"Dummy Target"
+> 
+> /*
+>  *  システムログの低レベル出力のための文字出力
+>  *
+>  *  ターゲット依存の方法で，文字cを表示/出力/保存する．
+>  */
+> extern void	target_fput_log(char c);
+> 
+> /*
+>  *  シリアルポートの数
+>  */
+> #define TNUM_PORT		1		/* サポートするシリアルポートの数 */
+> 
+> /*
+>  *  システムログタスク関連の定数の定義
+>  */
+> #define LOGTASK_STACK_SIZE	4096		/* スタック領域のサイズ */
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+Only in ./target/dummy_gcc: target_test.h
+Only in ./target/dummy_gcc: target_timer.c
+Only in ./target/dummy_gcc: target_timer.cfg
+Only in ./target/dummy_gcc: target_timer.h
+Only in ./target/dummy_gcc: target_unrename.h
+Only in ./target/gr_peach_gcc: E_PACKAGE
+Only in ./target/gr_peach_gcc: MANIFEST
+Only in ./target/gr_peach_gcc: Makefile.target
+Only in ./target/gr_peach_gcc: gdb_ram.ini
+Only in ./target/gr_peach_gcc: gdb_rom.ini
+Only in ./target/gr_peach_gcc: gr_peach.h
+Only in ./target/gr_peach_gcc: renesas_rza1h_swd.cfg
+Only in ./target/gr_peach_gcc: sf_boot.c
+Only in ./target/gr_peach_gcc: tSIOPortGRPeach.cdl
+Only in ./target/gr_peach_gcc: target.cdl
+Only in ./target/gr_peach_gcc: target_cfg1_out.h
+Only in ./target/gr_peach_gcc: target_check.trb
+Only in ./target/gr_peach_gcc: target_kernel.cfg
+Only in ./target/gr_peach_gcc: target_kernel.h
+Only in ./target/gr_peach_gcc: target_kernel.trb
+diff -r ./target/gr_peach_gcc/target_kernel_impl.c extension/non_tecs/target/gr_peach_gcc/target_kernel_impl.c
+6c6
+<  *  Copyright (C) 2007-2016 by Embedded and Real-Time Systems Laboratory
+---
+>  *  Copyright (C) 2007-2018 by Embedded and Real-Time Systems Laboratory
+38c38
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+171c171,174
+<  *
+---
+>  */
+> #ifndef TOPPERS_OMIT_TECS
+> 
+> /*
+175a179,185
+> #else /* TOPPERS_OMIT_TECS */
+> 
+> extern void	sio_initialize(intptr_t exinf);
+> extern void	target_fput_initialize(void);
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+> 
+218a229,231
+> #else /* TOPPERS_OMIT_TECS */
+> 	sio_initialize(0);
+> 	target_fput_initialize();
+260a274,321
+> 
+> #ifdef TOPPERS_OMIT_TECS
+> /*
+>  *		システムログの低レベル出力（本来は別のファイルにすべき）
+>  */
+> 
+> #include "target_syssvc.h"
+> #include "target_serial.h"
+> 
+> /*
+>  *  低レベル出力用のSIOポート管理ブロック
+>  */
+> static SIOPCB	*p_siopcb_target_fput;
+> 
+> /*
+>  *  SIOポートの初期化
+>  */
+> void
+> target_fput_initialize(void)
+> {
+> 	p_siopcb_target_fput = sio_opn_por(SIOPID_FPUT, 0);
+> }
+> 
+> /*
+>  *  SIOポートへのポーリング出力
+>  */
+> Inline void
+> gr_peach_uart_fput(char c)
+> {
+> 	/*
+> 	 *  送信できるまでポーリング
+> 	 */
+> 	while (!(sio_snd_chr(p_siopcb_target_fput, c))) ;
+> }
+> 
+> /*
+>  *  SIOポートへの文字出力
+>  */
+> void
+> target_fput_log(char c)
+> {
+> 	if (c == '\n') {
+> 		gr_peach_uart_fput('\r');
+> 	}
+> 	gr_peach_uart_fput(c);
+> }
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+Only in ./target/gr_peach_gcc: target_kernel_impl.h
+Only in ./target/gr_peach_gcc: target_mem.cfg
+Only in ./target/gr_peach_gcc: target_mem.trb
+Only in ./target/gr_peach_gcc: target_opt.trb
+Only in ./target/gr_peach_gcc: target_rename.def
+Only in ./target/gr_peach_gcc: target_rename.h
+Only in extension/non_tecs/target/gr_peach_gcc: target_serial.cfg
+Only in extension/non_tecs/target/gr_peach_gcc: target_serial.h
+Only in ./target/gr_peach_gcc: target_sil.h
+Only in ./target/gr_peach_gcc: target_stddef.h
+Only in ./target/gr_peach_gcc: target_support.S
+Only in ./target/gr_peach_gcc: target_svc.h
+diff -r ./target/gr_peach_gcc/target_syssvc.h extension/non_tecs/target/gr_peach_gcc/target_syssvc.h
+2c2
+<  *		システムサービスのターゲット依存部
+---
+>  *		システムサービスのターゲット依存部（GR-PEACH用）
+8c8
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+13a14,59
+> #ifdef TOPPERS_OMIT_TECS
+> 
+> #include "gr_peach.h"
+> #include "rza1.h"
+> 
+> /*
+>  *  起動メッセージのターゲットシステム名
+>  */
+> #define TARGET_NAME    "GR-PEACH"
+> 
+> /*
+>  *  システムログの低レベル出力のための文字出力
+>  *
+>  *  ターゲット依存の方法で，文字cを表示/出力/保存する．
+>  */
+> extern void	target_fput_log(char c);
+> 
+> /*
+>  *  シリアルポートの数
+>  */
+> #define TNUM_PORT		1		/* サポートするシリアルポートの数 */
+> 
+> /*
+>  *  SIOドライバで使用するSCIFに関する設定
+>  */
+> #define SIO_SCIF_BASE		SCIF2_BASE			/* SCIFのベース番地 */
+> #define SIO_SCIF_MODE		(SCIF_SCSMR_8BIT	/* モードレジスタ設定値 */ \
+> 								| SCIF_SCSMR_NOPARITY | SCIF_SCSMR_1STOP)
+> #define SIO_SCIF_BAUDRATE	115200				/* SIOのボーレート */
+> 
+> /*
+>  *  SIO割込みを登録するための定義
+>  */
+> #define INTNO_SIO_RX	INTNO_SCIF2_RXI		/* SIO受信割込み番号 */
+> #define INTNO_SIO_TX	INTNO_SCIF2_TXI		/* SIO送信割込み番号 */
+> #define ISRPRI_SIO		1					/* SIO ISR優先度 */
+> #define INTPRI_SIO		(-4)				/* SIO割込み優先度 */
+> #define INTATR_SIO		TA_NULL				/* SIO割込み属性 */
+> 
+> /*
+>  *  低レベル出力で使用するSIOポート
+>  */
+> #define SIOPID_FPUT		1
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+> 
+Only in ./target/gr_peach_gcc: target_test.h
+Only in ./target/gr_peach_gcc: target_timer.cfg
+Only in ./target/gr_peach_gcc: target_timer.h
+Only in ./target/gr_peach_gcc: target_unrename.h
+Only in ./target/gr_peach_gcc: target_user.txt
+Only in ./target: simtimer_ct11mpcore_gcc
+Only in ./target/zybo_gcc: E_PACKAGE
+Only in ./target/zybo_gcc: MANIFEST
+Only in ./target/zybo_gcc: Makefile.target
+Only in ./target/zybo_gcc: tSIOPortZybo.cdl
+Only in ./target/zybo_gcc: target.cdl
+Only in ./target/zybo_gcc: target_cfg1_out.h
+Only in ./target/zybo_gcc: target_check.trb
+Only in ./target/zybo_gcc: target_kernel.cfg
+Only in ./target/zybo_gcc: target_kernel.h
+Only in ./target/zybo_gcc: target_kernel.trb
+diff -r ./target/zybo_gcc/target_kernel_impl.c extension/non_tecs/target/zybo_gcc/target_kernel_impl.c
+38c38
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+53c53,56
+<  *
+---
+>  */
+> #ifndef TOPPERS_OMIT_TECS
+> 
+> /*
+57a61,67
+> #else /* TOPPERS_OMIT_TECS */
+> 
+> extern void	sio_initialize(intptr_t exinf);
+> extern void	target_fput_initialize(void);
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+> 
+91a102,104
+> #else /* TOPPERS_OMIT_TECS */
+> 	sio_initialize(0);
+> 	target_fput_initialize();
+125,126c138
+< 	Asm("ldr r1, =#0x20026\n\t"		/* ADP_Stopped_ApplicationExit */ 
+< 		"mov r0, #0x18\n\t"			/* angel_SWIreason_ReportException */
+---
+> 	Asm("mov r0, #24\n\t"
+130a143,190
+> 
+> #ifdef TOPPERS_OMIT_TECS
+> /*
+>  *		システムログの低レベル出力（本来は別のファイルにすべき）
+>  */
+> 
+> #include "target_syssvc.h"
+> #include "target_serial.h"
+> 
+> /*
+>  *  低レベル出力用のSIOポート管理ブロック
+>  */
+> static SIOPCB	*p_siopcb_target_fput;
+> 
+> /*
+>  *  SIOポートの初期化
+>  */
+> void
+> target_fput_initialize(void)
+> {
+> 	p_siopcb_target_fput = sio_opn_por(SIOPID_FPUT, 0);
+> }
+> 
+> /*
+>  *  SIOポートへのポーリング出力
+>  */
+> Inline void
+> zybo_uart_fput(char c)
+> {
+> 	/*
+> 	 *  送信できるまでポーリング
+> 	 */
+> 	while (!(sio_snd_chr(p_siopcb_target_fput, c))) ;
+> }
+> 
+> /*
+>  *  SIOポートへの文字出力
+>  */
+> void
+> target_fput_log(char c)
+> {
+> 	if (c == '\n') {
+> 		zybo_uart_fput('\r');
+> 	}
+> 	zybo_uart_fput(c);
+> }
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+Only in ./target/zybo_gcc: target_kernel_impl.h
+Only in ./target/zybo_gcc: target_mem.cfg
+Only in ./target/zybo_gcc: target_mem.trb
+Only in ./target/zybo_gcc: target_opt.trb
+Only in ./target/zybo_gcc: target_rename.def
+Only in ./target/zybo_gcc: target_rename.h
+Only in extension/non_tecs/target/zybo_gcc: target_serial.cfg
+Only in extension/non_tecs/target/zybo_gcc: target_serial.h
+Only in ./target/zybo_gcc: target_sil.h
+Only in ./target/zybo_gcc: target_stddef.h
+Only in ./target/zybo_gcc: target_svc.h
+diff -r ./target/zybo_gcc/target_syssvc.h extension/non_tecs/target/zybo_gcc/target_syssvc.h
+2c2
+<  *		システムサービスのターゲット依存部
+---
+>  *		システムサービスのターゲット依存部（ZYBO用）
+8c8
+<  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+---
+>  *  $Id: DIFF 773 2019-10-02 09:01:03Z ertl-hiro $
+13a14,59
+> #ifdef TOPPERS_OMIT_TECS
+> 
+> #include "zybo.h"
+> #include "zynq7000.h"
+> 
+> /*
+>  *  起動メッセージのターゲットシステム名
+>  */
+> #define TARGET_NAME    "ZYBO <Zynq-7000, Cortex-A9>"
+> 
+> /*
+>  *  システムログの低レベル出力のための文字出力
+>  *
+>  *  ターゲット依存の方法で，文字cを表示/出力/保存する．
+>  */
+> extern void	target_fput_log(char c);
+> 
+> /*
+>  *  シリアルポートの数
+>  */
+> #define TNUM_PORT		1		/* サポートするシリアルポートの数 */
+> 
+> /*
+>  *  SIOドライバで使用するXUartPsに関する設定
+>  */
+> #define SIO_XUARTPS_BASE	ZYNQ_UART1_BASE
+> #define SIO_XUARTPS_MODE	XUARTPS_MR_CHARLEN_8 \
+> 								| XUARTPS_MR_PARITY_NONE | XUARTPS_MR_STOPBIT_1
+> #define SIO_XUARTPS_BAUDGEN	XUARTPS_BAUDGEN_115K
+> #define SIO_XUARTPS_BAUDDIV	XUARTPS_BAUDDIV_115K
+> 
+> /*
+>  *  SIO割込みを登録するための定義
+>  */
+> #define INTNO_SIO		ZYNQ_UART1_IRQ		/* SIO割込み番号 */
+> #define ISRPRI_SIO		1					/* SIO ISR優先度 */
+> #define INTPRI_SIO		(-4)				/* SIO割込み優先度 */
+> #define INTATR_SIO		TA_NULL				/* SIO割込み属性 */
+> 
+> /*
+>  *  低レベル出力で使用するSIOポート
+>  */
+> #define SIOPID_FPUT		1
+> 
+> #endif /* TOPPERS_OMIT_TECS */
+> 
+Only in ./target/zybo_gcc: target_test.h
+Only in ./target/zybo_gcc: target_timer.cfg
+Only in ./target/zybo_gcc: target_timer.h
+Only in ./target/zybo_gcc: target_unrename.h
+Only in ./target/zybo_gcc: xilinx_sdk
+Only in ./target/zybo_gcc: zybo.h
+Only in .: tecs_kernel
+Only in .: tecsgen
+Only in .: test
+Only in .: utils
