@@ -115,6 +115,9 @@ DEVTOOLDIR =
 #
 CFG = ruby --verbose $(SRCDIR)/cfg/cfg.rb
 TECSGEN = ruby $(TECSDIR)/tecsgen.rb
+TOUCH=C:\msys64\usr\bin\touch.exe
+CP=C:\msys64\usr\bin\cp.exe
+DIFF=C:\msys64\usr\bin\diff.exe
 
 #
 #  オブジェクトファイル名の定義
@@ -270,7 +273,7 @@ endif
 #
 .PHONY: all
 ifndef OMIT_TECS
-all: tecs | $(DEPDIR)
+all: tecs
 #	@$(MAKE) kernel_cfg.h $(OFFSET_H) check
 	@$(MAKE) kernel_cfg.h $(OFFSET_H) check $(OBJNAME).bin
 #	@$(MAKE) kernel_cfg.h $(OFFSET_H) check $(OBJNAME).srec
@@ -459,13 +462,13 @@ $(TECSGEN_TIMESTAMP): $(APPL_CDL) $(TECS_IMPORTS)
 #  omit_svc.hの生成規則（ファイルがなければ空のファイルを生成する）
 #
 omit_svc.h:
-	touch omit_svc.h
+	$(TOUCH) omit_svc.h
 
 #
 #  カーネルのコンフィギュレーションファイルの生成
 #
 cfg1_out.c cfg1_out.db: cfg1_out.timestamp ;
-cfg1_out.timestamp: $(APPL_CFG) $(TECSGEN_TIMESTAMP)
+cfg1_out.timestamp: $(APPL_CFG) $(TECSGEN_TIMESTAMP) | $(DEPDIR)
 	$(CFG) --pass 1 $(CFG_KERNEL) $(INCLUDES) $(CFG_TABS) \
 						-M $(DEPDIR)/cfg1_out_c.d $(TARGET_KERNEL_CFG) $<
 
@@ -516,7 +519,7 @@ kernel_mem.timestamp: cfg2_out.db $(ALL2_OBJS) $(LIBS_DEP) $(CFG2_OUT_LDSCRIPT)
 	$(LINK) $(CFLAGS) $(LDFLAGS) $(CFG2_OUT_LDFLAGS) -Wl,-Map=$(subst $(OBJEXT),map,$(CFG2_OUT)),--cref -o $(CFG2_OUT) -Wl,--gc-sections -Wl,-e_start
 	$(NM) -n $(CFG2_OUT) > cfg2_out.syms
 	$(OBJCOPY) -O srec -S $(CFG2_OUT) cfg2_out.srec
-	cp -p cfg2_out.db cfg3_out.db
+	$(CP) -p cfg2_out.db cfg3_out.db
 	rm -f $(LDSCRIPT)
 	$(CFG) --pass 4 $(CFG_KERNEL) $(INCLUDES) -T $(TARGET_MEM_TRB) \
 				--rom-symbol cfg2_out.syms --rom-image cfg2_out.srec
@@ -594,11 +597,11 @@ $(OBJNAME).mot: $(OBJFILE)
 .PHONY: check
 check: check.timestamp ;
 check.timestamp: $(OBJNAME).syms
-	touch check.timestamp
+	$(TOUCH) check.timestamp
 ifdef USE_CFG_PASS3
-	diff cfg3_out.syms $(OBJNAME).syms
+	$(DIFF) cfg3_out.syms $(OBJNAME).syms
 else
-	diff cfg2_out.syms $(OBJNAME).syms
+	$(DIFF) cfg2_out.syms $(OBJNAME).syms
 endif
 	@echo "configuration check passed"
 
