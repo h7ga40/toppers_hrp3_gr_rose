@@ -41,7 +41,7 @@
  */
 
 /*
- *	ソフトウェア割込みによるサービスコール呼出し（ARM用）
+ *	ソフトウェア割込みによるサービスコール呼出し（RX-GCC用）
  */
 
 #ifndef TOPPERS_CORE_SVC_H
@@ -56,101 +56,101 @@
 #ifndef TOPPERS_MACRO_ONLY
 
 #define CAL_SVC_0M(TYPE, FNCD) do {								\
-	register TYPE r0 asm("r0");									\
+	register TYPE r1 asm("r1");									\
 	register FN r5 asm("r5") = FNCD;							\
 	Asm("int %1"												\
-	  : "=r"(r0)												\
+	  : "=r"(r1)												\
 	  : "n"(SVC_SERVICE_CALL),"r"(r5)							\
-	  : "r1","r2","r3","memory","cc");				\
-	return((TYPE) r0);											\
+	  : "r2","r3","r4","memory","cc");							\
+	return((TYPE) r1);											\
 } while (false)
 
 #define CAL_SVC_1M(TYPE, FNCD, TYPE1, PAR1) do {				\
-	register TYPE1 r0 asm("r0") = (TYPE1)(PAR1);				\
+	register TYPE1 r1 asm("r1") = (TYPE1)(PAR1);				\
 	register FN r5 asm("r5") = FNCD;							\
 	Asm("int %1"												\
-	  : "=r"(r0)												\
-	  : "n"(SVC_SERVICE_CALL),"0"(r0),"r"(r5)					\
-	  : "r1","r2","r3","memory","cc");				\
-	return((TYPE) r0);											\
+	  : "=r"(r1)												\
+	  : "n"(SVC_SERVICE_CALL),"0"(r1),"r"(r5)					\
+	  : "r2","r3","r4","memory","cc");							\
+	return((TYPE) r1);											\
 } while (false)
 
 #define CAL_SVC_2M(TYPE, FNCD, TYPE1, PAR1, TYPE2, PAR2) do {	\
-	register TYPE1 r0 asm("r0") = (TYPE1)(PAR1);				\
-	register TYPE2 r1 asm("r1") = (TYPE2)(PAR2);				\
+	register TYPE1 r1 asm("r1") = (TYPE1)(PAR1);				\
+	register TYPE2 r2 asm("r2") = (TYPE2)(PAR2);				\
 	register FN r5 asm("r5") = FNCD;							\
 	Asm("int %2"												\
-	  : "=r"(r0),"=r"(r1)										\
-	  : "n"(SVC_SERVICE_CALL),"0"(r0),"1"(r1),"r"(r5)			\
-	  : "r2","r3","memory","cc");					\
-	return((TYPE) r0);											\
+	  : "=r"(r1),"=r"(r2)										\
+	  : "n"(SVC_SERVICE_CALL),"0"(r1),"1"(r2),"r"(r5)			\
+	  : "r3","r4","memory","cc");								\
+	return((TYPE) r1);											\
 } while (false)
 
 #define CAL_SVC_3M(TYPE, FNCD, TYPE1, PAR1,						\
 							TYPE2, PAR2, TYPE3, PAR3) do {		\
-	register TYPE1 r0 asm("r0") = (TYPE1)(PAR1);				\
-	register TYPE2 r1 asm("r1") = (TYPE2)(PAR2);				\
-	register TYPE3 r2 asm("r2") = (TYPE3)(PAR3);				\
+	register TYPE1 r1 asm("r1") = (TYPE1)(PAR1);				\
+	register TYPE2 r2 asm("r2") = (TYPE2)(PAR2);				\
+	register TYPE3 r3 asm("r3") = (TYPE3)(PAR3);				\
 	register FN r5 asm("r5") = FNCD;							\
 	Asm("int %3"												\
-	  : "=r"(r0),"=r"(r1),"=r"(r2)								\
-	  : "n"(SVC_SERVICE_CALL),"0"(r0),"1"(r1),"2"(r2),			\
+	  : "=r"(r1),"=r"(r2),"=r"(r3)								\
+	  : "n"(SVC_SERVICE_CALL),"0"(r1),"1"(r2),"2"(r3),			\
 		"r"(r5)													\
-	  : "r3","memory","cc");							\
-	return((TYPE) r0);											\
+	  : "r4","memory","cc");									\
+	return((TYPE) r1);											\
 } while (false)
 
 #define CAL_SVC_4M(TYPE, FNCD, TYPE1, PAR1, TYPE2, PAR2,		\
 								TYPE3, PAR3, TYPE4, PAR4) do {	\
-	register TYPE1 r0 asm("r0") = (TYPE1)(PAR1);				\
-	register TYPE2 r1 asm("r1") = (TYPE2)(PAR2);				\
-	register TYPE3 r2 asm("r2") = (TYPE3)(PAR3);				\
-	register TYPE4 r3 asm("r3") = (TYPE4)(PAR4); 				\
+	register TYPE1 r1 asm("r1") = (TYPE1)(PAR1);				\
+	register TYPE2 r2 asm("r2") = (TYPE2)(PAR2);				\
+	register TYPE3 r3 asm("r3") = (TYPE3)(PAR3);				\
+	register TYPE4 r4 asm("r4") = (TYPE4)(PAR4); 				\
 	register FN r5 asm("r5") = FNCD;							\
 	Asm("int %4"												\
-	  : "=r"(r0),"=r"(r1),"=r"(r2),"=r"(r3)						\
-	  : "n"(SVC_SERVICE_CALL),"0"(r0),"1"(r1),"2"(r2),			\
-		"3"(r3),"r"(r5)											\
+	  : "=r"(r1),"=r"(r2),"=r"(r3),"=r"(r4)						\
+	  : "n"(SVC_SERVICE_CALL),"0"(r1),"1"(r2),"2"(r3),			\
+		"3"(r4),"r"(r5)											\
 	  : "memory","cc");								\
-	return((TYPE) r0);											\
+	return((TYPE) r1);											\
 } while (false)
 
 #define CAL_SVC_5M(TYPE, FNCD, TYPE1, PAR1, TYPE2, PAR2,		\
 					TYPE3, PAR3, TYPE4, PAR4, TYPE5, PAR5) do {	\
-	register TYPE1 r0 asm("r0") = (TYPE1)(PAR1);				\
-	register TYPE2 r1 asm("r1") = (TYPE2)(PAR2);				\
-	register TYPE3 r2 asm("r2") = (TYPE3)(PAR3);				\
-	register TYPE4 r3 asm("r3") = (TYPE4)(PAR4); 				\
-	register TYPE5 r4 asm("r4") = (TYPE5)(PAR5);				\
+	register TYPE1 r1 asm("r1") = (TYPE1)(PAR1);				\
+	register TYPE2 r2 asm("r2") = (TYPE2)(PAR2);				\
+	register TYPE3 r3 asm("r3") = (TYPE3)(PAR3);				\
+	register TYPE4 r4 asm("r4") = (TYPE4)(PAR4); 				\
+	register TYPE5 r14 asm("r14") = (TYPE5)(PAR5);				\
 	register FN r5 asm("r5") = FNCD;							\
 	Asm("int %5"												\
-	  : "=r"(r0),"=r"(r1),"=r"(r2),"=r"(r3),"=r"(r4)			\
-	  : "n"(SVC_SERVICE_CALL),"0"(r0),"1"(r1),"2"(r2),			\
-		"3"(r3),"4"(r4),"r"(r5)									\
+	  : "=r"(r1),"=r"(r2),"=r"(r3),"=r"(r4),"=r"(r14)			\
+	  : "n"(SVC_SERVICE_CALL),"0"(r1),"1"(r2),"2"(r3),			\
+		"3"(r4),"4"(r14),"r"(r5)								\
 	  : "memory","cc");								\
-	return((TYPE) r0);											\
+	return((TYPE) r1);											\
 } while (false)
 
 #define CAL_SVC_1M_SYSTIM(TYPE, FNCD, TYPE1, PAR1) do {					\
-	register uint32_t r0 asm("r0") = (uint32_t)((PAR1) & 0xffffffffU); 	\
-	register uint32_t r1 asm("r1") = (uint32_t)((PAR1) >> 32);			\
+	register uint32_t r1 asm("r1") = (uint32_t)((PAR1) & 0xffffffffU); 	\
+	register uint32_t r2 asm("r2") = (uint32_t)((PAR1) >> 32);			\
 	register FN r5 asm("r5") = FNCD;									\
 	Asm("int %2"														\
-	  : "=r"(r0),"=r"(r1)												\
-	  : "n"(SVC_SERVICE_CALL),"0"(r0),"1"(r1),"r"(r5)					\
-	  : "r2","r3","memory","cc");							\
-	return((TYPE) r0);													\
+	  : "=r"(r1),"=r"(r2)												\
+	  : "n"(SVC_SERVICE_CALL),"0"(r1),"1"(r2),"r"(r5)					\
+	  : "r3","r4","memory","cc");										\
+	return((TYPE) r1);													\
 } while (false)
 
 #define CAL_SVC_0M_R_UINT64(TYPE, FNCD) do {							\
-	register uint32_t r0 asm("r0");										\
 	register uint32_t r1 asm("r1");										\
+	register uint32_t r2 asm("r2");										\
 	register FN r5 asm("r5") = FNCD;									\
 	Asm("int %2"														\
-	  : "=r"(r0),"=r"(r1)												\
-	  : "n"(SVC_SERVICE_CALL),"0"(r0),"1"(r1),"r"(r5)					\
-	  : "r2","r3","memory","cc");							\
-	return((((TYPE) r1) << 32) + ((TYPE) r0));							\
+	  : "=r"(r1),"=r"(r2)												\
+	  : "n"(SVC_SERVICE_CALL),"0"(r1),"1"(r2),"r"(r5)					\
+	  : "r3","r4","memory","cc");										\
+	return((((TYPE) r2) << 32) + ((TYPE) r1));							\
 } while (false)
 
 /*
