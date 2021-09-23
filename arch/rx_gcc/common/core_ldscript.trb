@@ -80,13 +80,13 @@ end
 def SectionDescription(secname)
   case secname
   when ".text"
-    return(".text .text.* P P*")
+    return(".text .text.* P P_* P$*")
   when ".rodata"
-    return(".rodata .rodata.* C C* L L* W W*")
+    return(".rodata .rodata.* C C_* C$* L L_* L$* W W_* W$*")
   when ".data"
-    return(".data .data.* D D*")
+    return(".data .data.* D D_* D$*")
   when ".bss"
-    return(".bss .bss.* COMMON B B*")
+    return(".bss .bss.* COMMON B B_* B$*")
   else
     return(secname)
   end
