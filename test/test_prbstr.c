@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_prbstr.c 667 2019-02-13 07:42:11Z ertl-hiro $
+ *  $Id: test_prbstr.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /* 
@@ -167,7 +167,7 @@ extsvc1_routine(intptr_t par1, intptr_t par2, intptr_t par3,
 }
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 

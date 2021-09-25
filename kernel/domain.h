@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      High Reliable system Profile Kernel
  * 
- *  Copyright (C) 2008-2019 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2008-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: domain.h 727 2019-06-08 05:53:25Z ertl-hiro $
+ *  $Id: domain.h 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /*
@@ -136,7 +136,7 @@ extern SCHEDCB	schedcb_idle;
 typedef struct time_window_initialization_block {
 	PRCTIM			twdlen;			/* タイムウィンドウ長 */
 	const DOMINIB	*p_dominib;		/* 保護ドメイン初期化ブロック */
-	intptr_t		exinf;			/* 通知ハンドラの拡張情報 */
+	EXINF			exinf;			/* 通知ハンドラの拡張情報 */
 	NFYHDR			nfyhdr;			/* 通知ハンドラの起動番地 */
 } TWDINIB;
 
@@ -207,9 +207,10 @@ extern bool_t	twdtimer_flag;
 /*
  *  タイムウィンドウの残り時間
  *
- *  この変数は，タイムウィンドウタイマを動作させるべき状態
- *  （twdtime_enableがtrue）であり，タイムウィンドウタイマが停止中
- *  （twdtimer_flagがfalseの間）のみ有効である．
+ *  この変数は，タイムウィンドウタイマを動作させるべき状態である間
+ *  （twdtime_enableがtrueの間）のみ有効である．タイムウィンドウタイマ
+ *  の動作中（twdtimer_flagがtrueの間）には，この変数は，最後にタイム
+ *  ウィンドウタイマを動作開始した時点の値を保持している．
  */
 extern PRCTIM	left_twdtim;
 
@@ -341,9 +342,9 @@ extern void		twd_switch(void);
 /*
  *  タスクディスパッチ可能状態への遷移
  *
- *  タスクディスパッチ可能状態であることを示すフラグ（dspflg）をtrueに
- *  し，保留された切換え処理を実行する．また，実行すべきタスクを更新す
- *  る．
+ *  割込み優先度マスクをTIPM_ENAALLに，タスクディスパッチ可能状態であ
+ *  ることを示すフラグ（dspflg）をtrueにし，保留された切換え処理を実行
+ *  する．また，実行すべきタスクを更新する．
  */
 extern void		set_dspflg(void);
 

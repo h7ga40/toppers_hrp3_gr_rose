@@ -5,7 +5,7 @@
 #       High Reliable system Profile Kernel
 # 
 #   Copyright (C) 2015 by FUJI SOFT INCORPORATED, JAPAN
-#   Copyright (C) 2015-2019 by Embedded and Real-Time Systems Laboratory
+#   Copyright (C) 2015-2020 by Embedded and Real-Time Systems Laboratory
 #               Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #   上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 # 
-#   $Id: kernel.trb 734 2019-06-27 05:35:48Z ertl-hiro $
+#   $Id: kernel.trb 980 2020-05-25 07:06:43Z ertl-hiro $
 # 
 
 #
@@ -96,15 +96,24 @@ end
 GenerateCFileHeader($kernelMemC)
 
 #
-#  スタック領域の確保関数
+#  スタック領域の確保
 #
 #  スタック領域の定義分と，スタック領域のサイズ記述を配列で返す．
 #
 unless defined? AllocSystemStack()
-  def AllocSystemStack(stack, size)
+  def AllocSystemStack(stack, size, params)
     # 大きい方に丸めたサイズで確保する［NGKI1050］［NGKI3220］
     $kernelCfgC.add("static STK_T #{stack}[COUNT_STK_T(#{size})];")
     return("ROUND_STK_T(#{size})")
+  end
+end
+
+#
+#  ユーザスタックを配置するメモリリージョン
+#
+unless defined? MemregUserStack()
+  def MemregUserStack(params)
+    return($standardMemreg[params[:domain]][:stdstk])
   end
 end
 
@@ -155,10 +164,13 @@ class KernelObject
     end
     numObjid = $cfgData[@api].size + numAutoObjid
 
-    # kernel_cfg.hの生成
+    # オブジェクトの数のマクロ定義の生成（kernel_cfg.h）
+    # ［NGKI1022］［NGKI1451］［NGKI1557］［NGKI1664］［NGKI1799］
+    # ［NGKI2020］［NGKI3298］［NGKI2220］［NGKI2378］［NGKI2486］
+    # ［NGKI3612］
     $kernelCfgH.add("#define TNUM_#{@OBJ}ID\t#{numObjid}")
 
-    # オブジェクトのID番号のマクロ定義の生成
+    # オブジェクトのID番号のマクロ定義の生成（kernel_cfg.h）
     $cfgData[@api].sort.each do |_, params|
       $kernelCfgH.add("#define #{params[@objid]}\t#{params[@objid].val}")
     end
@@ -201,39 +213,35 @@ class KernelObject
           params[:domain] ||= $TDOM_NONE
         end
 
-        # カーネルオブジェクト毎の事前準備
-        prepare(key, params)
-      end
+        # SAC_OBJに関する事前準備（エラーチェック，情報の生成）
+        if $cfgData.has_key?(@sacapi) && $cfgData[@sacapi].has_key?(key)
+          params2 = $cfgData[@sacapi][key]
+          params2[:domain] ||= $TDOM_NONE
 
-      # SAC_OBJに関する事前準備（エラーチェック，情報の生成）
-      if $cfgData.has_key?(@sacapi)
-        $cfgData[@api].sort.each do |key, params|
-          if $cfgData[@sacapi].has_key?(key)
-            params2 = $cfgData[@sacapi][key]
-            params2[:domain] ||= $TDOM_NONE
-
-            # SAC_OBJがCRE_OBJと異なる保護ドメインに属する場合（E_RSATR）
-            # ［NGKI1083］［NGKI1478］［NGKI1581］［NGKI1698］［NGKI1835］
-            # ［NGKI2047］［NGKI3336］［NGKI2267］［NGKI3732］［NGKI3740］
-            if params2[:domain] != params[:domain]
-              error_ercd("E_RSATR", params2,
+          # SAC_OBJがCRE_OBJと異なる保護ドメインに属する場合（E_RSATR）
+          # ［NGKI1083］［NGKI1478］［NGKI1581］［NGKI1698］［NGKI1835］
+          # ［NGKI2047］［NGKI3336］［NGKI2267］［NGKI3732］［NGKI3740］
+          if params2[:domain] != params[:domain]
+            error_ercd("E_RSATR", params2,
 							"#{@sacapi} of %#{@objid} must be " \
 							"within the same protection domain with #{@api}")
-            end
-
-            params[:acptn1] = params2[:acptn1]
-            params[:acptn2] = params2[:acptn2]
-            params[:acptn3] = params2[:acptn3]
-            params[:acptn4] = params2[:acptn4]
-          else
-            # SAC_OBJがない場合のデフォルト値の設定［NGKI0613］［NGKI0614］
-            # ［NGKI0615］［NGKI0616］
-            params[:acptn1] = $defaultAcptn[params[:domain]]
-            params[:acptn2] = $defaultAcptn[params[:domain]]
-            params[:acptn3] = $domData[params[:domain]][:acptn1]
-            params[:acptn4] = $defaultAcptn[params[:domain]]
           end
+
+          params[:acptn1] = params2[:acptn1]
+          params[:acptn2] = params2[:acptn2]
+          params[:acptn3] = params2[:acptn3]
+          params[:acptn4] = params2[:acptn4]
+        else
+          # SAC_OBJがない場合のデフォルト値の設定［NGKI0613］［NGKI0614］
+          # ［NGKI0615］［NGKI0616］
+          params[:acptn1] = $defaultAcptn[params[:domain]]
+          params[:acptn2] = $defaultAcptn[params[:domain]]
+          params[:acptn3] = $domData[params[:domain]][:acptn1]
+          params[:acptn4] = $defaultAcptn[params[:domain]]
         end
+
+        # カーネルオブジェクト毎の事前準備
+        prepare(key, params)
       end
 
       # オブジェクト全体に対して必要なメモリ領域の生成（オプション）
@@ -308,44 +316,45 @@ def generateNotifyHandler(key, params, objid)
   if (numpar == 2 && par2.nil?) || (nfymode2 != 0 && epar1.nil?) \
 								|| (nfymode2 == $TENFY_SETFLG && epar2.nil?)
     # パラメータが足りない場合
-    error_api(params, "too few parameters for nfymode `#{nfymode}' " \
-											"in %apiname of %#{objid}")
+    error_sapi(nil, params,
+					"too few parameters for nfymode `#{nfymode}'", objid)
   elsif (nfymode2 == 0 && !epar1.nil?) \
 					|| (nfymode2 != $TENFY_SETFLG && !epar2.nil?)
     # パラメータが多すぎる場合
-    error_api(params, "too many parameters for nfymode `#{nfymode}' " \
-											"in %apiname of %#{objid}")
+    error_sapi(nil, params,
+					"too many parameters for nfymode `#{nfymode}'", objid)
   elsif nfymode1 == $TNFY_HANDLER && nfymode2 == 0		#［NGKI3721］
-    # タイムイベントハンドラの呼出し
-    funcname = "(NFYHDR)(#{par2})"
+    # タイムイベントハンドラの呼出し（通知ハンドラ名を上書き）
+    params[:nfyhdr] = "(NFYHDR)(#{par2})"
 
     # カーネルドメインに属していない場合［NGKI3695］
     if !params.has_key?(:domain) || params[:domain] != $TDOM_KERNEL
-      error_ercd("E_OACV", params, "nfymode `#{nfymode}' is not permitted " \
-								"in user domains in %apiname of %#{objid}")
+      if params[:apiname] != "ATT_TWD"
+        error_sapi("E_OACV", params, "nfymode `#{nfymode}' is not permitted " \
+													"in user domains", objid)
+      else
+        error_sapi("E_OACV", params, "nfymode `#{nfymode}' is not permitted")
+      end
     end
   else
-    # 通知ハンドラの関数名
-    funcname = "_kernel_nfyhdr_#{params[objid]}"
-
     # エラー通知のための変数のアドレスとオブジェクトIDを格納する
     # 変数の生成（エラーチェックのために必要）
     if nfymode2 == $TENFY_SETVAR || nfymode2 == $TENFY_INCVAR
-      $kernelCfgC.add2("intptr_t *const #{funcname}_p_evar =" \
+      $kernelCfgC.add2("intptr_t *const #{params[:nfyhdr]}_p_evar =" \
 											" (intptr_t *)(#{epar1});")
     elsif nfymode2 == $TENFY_ACTTSK || nfymode2 == $TENFY_WUPTSK
-      $kernelCfgC.add2("const ID #{funcname}_etskid = #{epar1};")
+      $kernelCfgC.add2("const ID #{params[:nfyhdr]}_etskid = #{epar1};")
     elsif nfymode2 == $TENFY_SIGSEM
-      $kernelCfgC.add2("const ID #{funcname}_esemid = #{epar1};")
+      $kernelCfgC.add2("const ID #{params[:nfyhdr]}_esemid = #{epar1};")
     elsif nfymode2 == $TENFY_SETFLG
-      $kernelCfgC.add2("const ID #{funcname}_eflgid = #{epar1};")
+      $kernelCfgC.add2("const ID #{params[:nfyhdr]}_eflgid = #{epar1};")
     elsif nfymode2 == $TENFY_SNDDTQ
-      $kernelCfgC.add2("const ID #{funcname}_edtqid = #{epar1};")
+      $kernelCfgC.add2("const ID #{params[:nfyhdr]}_edtqid = #{epar1};")
     end
 
     # 関数の先頭部分の生成
     $kernelCfgC.add("static void")
-    $kernelCfgC.add("#{funcname}(intptr_t exinf)")
+    $kernelCfgC.add("#{params[:nfyhdr]}(EXINF exinf)")
     $kernelCfgC.add("{")
 
     if nfymode2 == 0
@@ -383,7 +392,7 @@ def generateNotifyHandler(key, params, objid)
       $kernelCfgC.add("\t#{errorCode}psnd_dtq(((ID) exinf), #{par2});")
     else
       # nfymodeの値が正しくない場合（E_PAR）［NGKI3730］
-      error_illegal_id("E_PAR", params, :nfymode, objid)
+      error_sapi("E_PAR", params, "illegal %%nfymode", objid)
     end
 
     if nfymode2 != 0
@@ -392,31 +401,32 @@ def generateNotifyHandler(key, params, objid)
 
       if nfymode2 == $TENFY_SETVAR
         # 変数の設定
-        $kernelCfgC.add("\t\t*#{funcname}_p_evar = (intptr_t) ercd;")
+        $kernelCfgC.add("\t\t*#{params[:nfyhdr]}_p_evar = (intptr_t) ercd;")
       elsif nfymode2 == $TENFY_INCVAR
         # 変数のインクリメント
         $kernelCfgC.add("\t\t(void) loc_cpu();")
-        $kernelCfgC.add("\t\t*#{funcname}_p_evar += 1;")
+        $kernelCfgC.add("\t\t*#{params[:nfyhdr]}_p_evar += 1;")
         $kernelCfgC.add("\t\t(void) unl_cpu();")
       elsif nfymode2 == $TENFY_ACTTSK
         # タスクの起動
-        $kernelCfgC.add("\t\t(void) act_tsk(#{funcname}_etskid);")
+        $kernelCfgC.add("\t\t(void) act_tsk(#{params[:nfyhdr]}_etskid);")
       elsif nfymode2 == $TENFY_WUPTSK
         # タスクの起床
-        $kernelCfgC.add("\t\t(void) wup_tsk(#{funcname}_etskid);")
+        $kernelCfgC.add("\t\t(void) wup_tsk(#{params[:nfyhdr]}_etskid);")
       elsif nfymode2 == $TENFY_SIGSEM
         # セマフォの返却
-        $kernelCfgC.add("\t\t(void) sig_sem(#{funcname}_esemid);")
+        $kernelCfgC.add("\t\t(void) sig_sem(#{params[:nfyhdr]}_esemid);")
       elsif nfymode2 == $TENFY_SETFLG
         # イベントフラグのセット
-        $kernelCfgC.add("\t\t(void) set_flg(#{funcname}_eflgid, #{epar2});")
+        $kernelCfgC.add("\t\t(void) set_flg(#{params[:nfyhdr]}_eflgid, " \
+															"#{epar2});")
       elsif nfymode2 == $TENFY_SNDDTQ
         # データキューへの送信
-        $kernelCfgC.add("\t\t(void) psnd_dtq(#{funcname}_edtqid," \
+        $kernelCfgC.add("\t\t(void) psnd_dtq(#{params[:nfyhdr]}_edtqid," \
 													" (intptr_t) ercd);")
       else
         # nfymodeの値が正しくない場合（E_PAR）［NGKI3730］
-        error_illegal_id("E_PAR", params, :nfymode, objid)
+        error_sapi("E_PAR", params, "illegal %%nfymode", objid)
       end
       $kernelCfgC.add("\t}")
     end
@@ -424,7 +434,6 @@ def generateNotifyHandler(key, params, objid)
     # 関数の末尾部分の生成
     $kernelCfgC.add2("}")
   end
-  return(funcname)
 end
 
 #
@@ -453,9 +462,9 @@ else
   $kernelCfgC.add("TMEVTN\t_kernel_tmevt_heap_kernel[1 + #{tmevtCount}];");
 
   tmevtCount = 0
-  $udomainList.each do |key|
-    params = $domData[key]
-    if $schedcbList.has_key?(key)
+  $udomainList.each do |domain|
+    params = $domData[domain]
+    if $schedcbList.has_key?(domain)
       $kernelCfgC.add("TMEVTN\t_kernel_tmevt_heap_#{params[:domid]}" \
 										"[1 + #{params[:tmevtCount]}];");
     else
@@ -493,20 +502,19 @@ if $cfgData[:SAC_SYS].size == 0
   # SAC_SYSがない場合のデフォルト値の設定［NGKI0426］
   $kernelCfgC.append("{ TACP_KERNEL, TACP_KERNEL, TACP_KERNEL, TACP_KERNEL }")
 else
-  # 静的API「SAC_SYS」が複数ある場合（E_OBJ）［NGKI2677］
-  if $cfgData[:SAC_SYS].size > 1
-    error("E_OBJ: too many SAC_SYS")
+  $cfgData[:SAC_SYS].each_with_index do |(_, params), index|
+    # カーネルドメインの囲みの中に記述されていない場合（E_RSATR）［NGKI2674］
+    if !params.has_key?(:domain) || params[:domain] != $TDOM_KERNEL
+      error_ercd("E_RSATR", params, "%apiname must be within the kernel domain")
+    end
+
+    # システム状態のアクセス許可ベクタが設定済みの場合（E_OBJ）［NGKI2677］
+    if index > 0
+      error_ercd("E_OBJ", params, "%apiname is duplicated")
+    end
+
+    $kernelCfgC.append(GenerateAcvct(params))
   end
-
-  # SAC_SYSがある場合の処理
-  params0 = $cfgData[:SAC_SYS][1]
-
-  # カーネルドメインの囲みの中に記述されていない場合（E_RSATR）［NGKI2674］
-  if !params0.has_key?(:domain) || params0[:domain] != $TDOM_KERNEL
-    error_ercd("E_RSATR", params0, "%apiname must be within the kernel domain")
-  end
-
-  $kernelCfgC.append(GenerateAcvct(params0))
 end
 $kernelCfgC.add2(";")
 
@@ -519,47 +527,47 @@ if $cfgData[:DEF_ICS].size == 0
   # DEF_ICSがない場合のデフォルト値の設定
   if !defined?($DEFAULT_ISTK)
     # スタック領域の自動割付け
-    istksz = AllocSystemStack("_kernel_istack", "DEFAULT_ISTKSZ")
+    istksz = AllocSystemStack("_kernel_istack", "DEFAULT_ISTKSZ", :istack)
     istk = "_kernel_istack"
   else
     istksz = "DEFAULT_ISTKSZ"
     istk = "DEFAULT_ISTK"
   end
 else
-  # 静的API「DEF_ICS」が複数ある場合（E_OBJ）［NGKI3216］
-  if $cfgData[:DEF_ICS].size > 1
-    error("E_OBJ: too many DEF_ICS")
-  end
+  $cfgData[:DEF_ICS].each_with_index do |(_, params), index|
+    # パラメータが省略された時のデフォルト値の設定
+    params[:istk] ||= "NULL"
 
-  # DEF_ICSがある場合の処理
-  params0 = $cfgData[:DEF_ICS][1]
-
-  # パラメータが省略された時のデフォルト値の設定
-  params0[:istk] ||= "NULL"
-
-  # カーネルドメインの囲みの中に記述されていない場合（E_RSATR）［NGKI3213］
-  if !params0.has_key?(:domain) || params0[:domain] != $TDOM_KERNEL
-    error_ercd("E_RSATR", params0, "%apiname must be within the kernel domain")
-  end
-
-  # istkszがターゲット定義の最小値（TARGET_MIN_ISTKSZ，未定義の場合は1）
-  # よりも小さい場合（E_PAR）［NGKI3254］
-  if params0[:istksz] < $TARGET_MIN_ISTKSZ
-    error_wrong("E_PAR", params0, :istksz, "too small")
-  end
-
-  if params0[:istk] == "NULL"
-    # スタック領域の自動割付け
-    istksz = AllocSystemStack("_kernel_istack", params0[:istksz])
-    istk = "_kernel_istack"
-  else
-    # istkszがターゲット定義の制約に合致しない場合（E_PAR）［NGKI3222］
-    if (params0[:istksz] & ($CHECK_SSTKSZ_ALIGN - 1)) != 0
-      error_wrong("E_PAR", params0, :istksz, "not aligned")
+    # カーネルドメインの囲みの中に記述されていない場合（E_RSATR）［NGKI3213］
+    if !params.has_key?(:domain) || params[:domain] != $TDOM_KERNEL
+      error_ercd("E_RSATR", params, "%apiname must be within the kernel domain")
     end
 
-    istksz = "(#{params0[:istksz]})"
-    istk = "(void *)(#{params0[:istk]})"
+    # istkszがターゲット定義の最小値（TARGET_MIN_ISTKSZ，未定義の場合は1）
+    # よりも小さい場合（E_PAR）［NGKI3254］
+    if params[:istksz] < $TARGET_MIN_ISTKSZ
+      error_wrong("E_PAR", params, :istksz, "too small")
+    end
+
+    # istkszがターゲット定義の制約に合致しない場合（E_PAR）［NGKI3222］
+    if params[:istk] != "NULL" \
+				&& (params[:istksz] & ($CHECK_SSTKSZ_ALIGN - 1)) != 0
+      error_wrong("E_PAR", params, :istksz, "not aligned")
+    end
+
+    # 非タスクコンテキスト用スタック領域が設定済みの場合（E_OBJ）［NGKI3216］
+    if index > 0
+      error_ercd("E_OBJ", params, "%apiname is duplicated")
+    end
+
+    if params[:istk] == "NULL"
+      # スタック領域の自動割付け
+      istksz = AllocSystemStack("_kernel_istack", params[:istksz], :istack)
+      istk = "_kernel_istack"
+    else
+      istksz = "(#{params[:istksz]})"
+      istk = "(void *)(#{params[:istk]})"
+    end
   end
 end
 
@@ -581,13 +589,10 @@ $cfgData[:DEF_MPK].each do |key, params|
   # 保護ドメインの囲みの中に記述されていない場合は無所属とする
   params[:domain] ||= $TDOM_NONE
 
-  # 保護ドメイン中に複数のDEF_MPKがある場合（E_OBJ）［NGKI5073］
-  $cfgData[:DEF_MPK].each do |key2, params2|
-    break if key2 == key
-    if params2[:domain] == params[:domain]
-      error_ercd("E_OBJ", params, \
+  # カーネルメモリプール領域が設定済みの場合（E_OBJ）［NGKI5073］
+  if $domData[params[:domain]].has_key?(:mpksz)
+    error_ercd("E_OBJ", params, \
 						"%apiname is duplicated in a protection domain")
-    end
   end
 
   # パラメータが省略された時のデフォルト値の設定
@@ -674,7 +679,7 @@ if $cfgData[:ATT_INI].size > 0
   $cfgData[:ATT_INI].each_with_index do |(_, params), index|
     $kernelCfgC.add(",") if index > 0
     $kernelCfgC.append("\t{ (INIRTN)(#{params[:inirtn]}), " \
-								"(intptr_t)(#{params[:exinf]}) }")
+								"(EXINF)(#{params[:exinf]}) }")
   end
   $kernelCfgC.add
   $kernelCfgC.add2("};")
@@ -716,7 +721,7 @@ if $cfgData[:ATT_TER].size > 0
   $cfgData[:ATT_TER].reverse_each.each_with_index do |(_, params), index|
     $kernelCfgC.add(",") if index > 0
     $kernelCfgC.append("\t{ (TERRTN)(#{params[:terrtn]}), " \
-								"(intptr_t)(#{params[:exinf]}) }")
+								"(EXINF)(#{params[:exinf]}) }")
   end
   $kernelCfgC.add
   $kernelCfgC.add2("};")

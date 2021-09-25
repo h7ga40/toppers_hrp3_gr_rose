@@ -5,7 +5,7 @@
 #       High Reliable system Profile Kernel
 # 
 #   Copyright (C) 2015 by FUJI SOFT INCORPORATED, JAPAN
-#   Copyright (C) 2015-2019 by Embedded and Real-Time Systems Laboratory
+#   Copyright (C) 2015-2020 by Embedded and Real-Time Systems Laboratory
 #               Graduate School of Information Science, Nagoya Univ., JAPAN
 #  
 #   上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,50 +37,45 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 # 
-#   $Id: overrun.trb 665 2019-02-03 17:06:18Z ertl-hiro $
+#   $Id: overrun.trb 976 2020-05-20 07:17:10Z ertl-hiro $
 #  
 
 #
 #		オーバランハンドラ機能の生成スクリプト
 #
 
-#
-#  オーバランハンドラがサポートされていない場合のエラーチェック
-#
 if !$TOPPERS_SUPPORT_OVRHDR
-  if $cfgData.has_key?(:DEF_OVR)
+  #
+  #  オーバランハンドラがサポートされていない場合のエラーチェック
+  #
+  if $cfgData[:DEF_OVR].size > 0
     error("E_NOSPT: DEF_OVR is not supported on this target")
   end
-end
-
-#
-#  オーバランハンドラ機能に関する情報の生成
-#
-$kernelCfgC.comment_header("Overrun Handler Functions")
-
-# 静的API「DEF_OVR」が複数ある場合（E_OBJ）［NGKI2619］
-if $cfgData[:DEF_OVR].size() > 1
-  error("E_OBJ: too many DEF_OVR")
-end
-
-# オーバランハンドラ初期化ブロックの生成
-$kernelCfgC.add("const OVRINIB _kernel_ovrinib = ")
-if $cfgData[:DEF_OVR].size() > 0
-  # DEF_OVRがある場合の処理
-  params = $cfgData[:DEF_OVR][1]
-
-  # カーネルドメインの囲みの中に記述されていない場合（E_RSATR）［NGKI2621］
-  if !params.has_key?(:domain) || params[:domain] != $TDOM_KERNEL
-    error_ercd("E_RSATR", params, "%apiname must be within the kernel domain")
-  end
-
-  # ovratrが無効の場合（E_RSATR）［NGKI2612］［NGKI2602］［NGKI2603］
-  #（TA_NULLでない場合）
-  if params[:ovratr] != $TA_NULL
-    error_illegal("E_RSATR", params, :ovratr)
-  end
-
-  $kernelCfgC.add2("{ (#{params[:ovratr]}), (OVRHDR)(#{params[:ovrhdr]}) };")
 else
-  $kernelCfgC.add2("{ (TA_NULL), (OVRHDR)(NULL) };")
+  #
+  #  オーバランハンドラ機能に関する情報の生成
+  #
+  $kernelCfgC.comment_header("Overrun Handler Functions")
+
+  $kernelCfgC.append("const OVRINIB _kernel_ovrinib = ")
+  if $cfgData[:DEF_OVR].size == 0
+    # DEF_OVRがない場合の設定
+    $kernelCfgC.add2("{ (TA_NULL), (OVRHDR)(NULL) };")
+  else
+    $cfgData[:DEF_OVR].each_with_index do |(_, params), index|
+      # ovratrが無効の場合（E_RSATR）［NGKI2612］［NGKI2602］［NGKI2603］
+      #（TA_NULLでない場合）
+      if params[:ovratr] != $TA_NULL
+        error_illegal("E_RSATR", params, :ovratr)
+      end
+
+      # オーバランハンドラが定義済みの場合（E_OBJ）［NGKI2619］
+      if index > 0
+        error_ercd("E_OBJ", params, "%apiname is duplicated")
+      end
+
+      $kernelCfgC.add2("{ (#{params[:ovratr]}), " \
+								"(OVRHDR)(#{params[:ovrhdr]}) };")
+    end
+  end
 end

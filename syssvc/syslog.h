@@ -121,7 +121,7 @@ extern ER		_syslog_fls_log(void) throw();
 /*
  *  システムログ機能の初期化
  */
-extern void	syslog_initialize(intptr_t exinf) throw();
+extern void	syslog_initialize(EXINF exinf) throw();
 
 /*
  *  システムログ機能のサービスコールを呼び出すための定義

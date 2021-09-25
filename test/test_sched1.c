@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_sched1.c 445 2018-08-17 16:22:40Z ertl-hiro $
+ *  $Id: test_sched1.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /* 
@@ -117,7 +117,7 @@
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -138,7 +138,7 @@ task1(intptr_t exinf)
 }
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -154,7 +154,7 @@ task2(intptr_t exinf)
 }
 
 void
-task3(intptr_t exinf)
+task3(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -177,7 +177,7 @@ task3(intptr_t exinf)
 }
 
 void
-task4(intptr_t exinf)
+task4(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -201,7 +201,7 @@ task4(intptr_t exinf)
 }
 
 void
-task5(intptr_t exinf)
+task5(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -214,7 +214,7 @@ task5(intptr_t exinf)
 }
 
 void
-task6(intptr_t exinf)
+task6(EXINF exinf)
 {
 	ER_UINT	ercd;
 

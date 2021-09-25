@@ -50,7 +50,7 @@
  *  タイマの起動処理
  */
 void
-target_hrt_initialize(intptr_t exinf)
+target_hrt_initialize(EXINF exinf)
 {
 	/*
 	 * モジュールストップ機能の設定
@@ -107,7 +107,7 @@ target_hrt_initialize(intptr_t exinf)
  *  タイマの停止処理
  */
 void
-target_hrt_terminate(intptr_t exinf)
+target_hrt_terminate(EXINF exinf)
 {
 	/*
 	 * タイマ停止
@@ -161,7 +161,7 @@ target_hrt_handler(void)
  *  タイムウィンドウタイマの初期化処理
  */
 void
-target_twdtimer_initialize(intptr_t exinf)
+target_twdtimer_initialize(EXINF exinf)
 {
 	/*
 	 * モジュールストップ機能の設定
@@ -211,7 +211,7 @@ target_twdtimer_initialize(intptr_t exinf)
  *  タイムウィンドウタイマの停止処理
  */
 void
-target_twdtimer_terminate(intptr_t exinf)
+target_twdtimer_terminate(EXINF exinf)
 {
 	/*
 	 * タイマ停止

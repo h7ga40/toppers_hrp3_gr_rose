@@ -140,7 +140,7 @@ _logtask_flush(uint_t count)
  *  システムログタスクの本体
  */
 void
-logtask_main(intptr_t exinf)
+logtask_main(EXINF exinf)
 {
 	SYSLOG	syslog;
 	ER_UINT	rercd;
@@ -164,7 +164,7 @@ logtask_main(intptr_t exinf)
  *  システムログタスクの終了処理
  */
 void
-logtask_terminate(intptr_t exinf)
+logtask_terminate(EXINF exinf)
 {
 	char	c;
 	SYSLOG	syslog;

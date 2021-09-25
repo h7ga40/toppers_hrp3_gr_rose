@@ -12,7 +12,7 @@ extern ER _kernel_ext_tsk(void) throw();
 extern ER _kernel_ter_tsk(ID tskid) throw();
 extern ER _kernel_chg_pri(ID tskid, PRI tskpri) throw();
 extern ER _kernel_get_pri(ID tskid, PRI *p_tskpri) throw();
-extern ER _kernel_get_inf(intptr_t *p_exinf) throw();
+extern ER _kernel_get_inf(EXINF *p_exinf) throw();
 extern ER _kernel_slp_tsk(void) throw();
 extern ER _kernel_tslp_tsk(TMO tmout) throw();
 extern ER _kernel_wup_tsk(ID tskid) throw();

@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: simt_systim1.h 586 2018-12-02 09:31:05Z ertl-hiro $
+ *  $Id: simt_systim1.h 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /* 
@@ -67,9 +67,9 @@
  */
 #ifndef TOPPERS_MACRO_ONLY
 
-extern void	task1(intptr_t exinf);
-extern void	alarm1_handler(intptr_t exinf);
-extern void	alarm2_handler(intptr_t exinf);
-extern void	alarm3_handler(intptr_t exinf);
+extern void	task1(EXINF exinf);
+extern void	alarm1_handler(EXINF exinf);
+extern void	alarm2_handler(EXINF exinf);
+extern void	alarm3_handler(EXINF exinf);
 
 #endif /* TOPPERS_MACRO_ONLY */

@@ -5,7 +5,7 @@
 # 
 #  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
 #                              Toyohashi Univ. of Technology, JAPAN
-#  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2006-2019 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 # 
-#  $Id: Makefile_mml 513 2018-10-29 13:54:19Z ertl-hiro $
+#  $Id: Makefile_mml 901 2019-12-06 15:37:01Z ertl-hiro $
 # 
 
 #
@@ -179,7 +179,7 @@ endif
 CDEFS := $(CDEFS) @(CDEFS)
 INCLUDES := -I. -I$(SRCDIR)/include $(INCLUDES) -I$(SRCDIR)
 LDFLAGS := $(LDFLAGS) @(LDFLAGS)
-LIBS := $(LIBS) $(CXXLIBS)
+LIBS := @(LIBS) $(LIBS) $(CXXLIBS)
 CFLAGS = $(COPTS) $(CDEFS) $(INCLUDES)
 
 #
@@ -217,6 +217,14 @@ SYSSVC_COBJS := $(SYSSVC_COBJS) @(SYSSVCOBJS) $(TECS_KERNEL_COBJS) \
 SYSSVC_CFLAGS := $(SYSSVC_CFLAGS) -DTOPPERS_SVC_CALL
 INCLUDES := $(INCLUDES) -I$(TECSGENDIR) -I$(SRCDIR)/tecs_kernel \
 				-I$(TECSDIR)/tecs -I$(TECSDIR)/tecs/rpc
+
+#
+#  トレースログ記録のサンプルコードに関する定義
+#
+ifdef ENABLE_TRACE
+	COPTS := $(COPTS) -DTOPPERS_ENABLE_TRACE
+	SYSSVC_DIRS := $(SYSSVC_DIRS) $(SRCDIR)/arch/tracelog
+endif
 
 #
 #  ターゲットファイル
@@ -349,7 +357,7 @@ endif
 #
 #  tecsgenからCプリプロセッサを呼び出す際のオプションの定義
 #
-TECS_CPP = $(CC) $(CDEFS) $(INCLUDES) $(SYSSVC_CFLAGS) -D TECSGEN -E
+TECS_CPP = $(CC) $(CDEFS) $(INCLUDES) -D TECSGEN -E
 
 #
 #  tecsgenの呼出し
@@ -415,7 +423,7 @@ $(APPL_ASMOBJS) $(SYSSVC_ASMOBJS) $(KERNEL_ASMOBJS) $(CFG_ASMOBJS): \
 #  特別な依存関係の定義
 #
 $(OBJDIR)/svc_table.o: omit_svc.h
-$(OBJDIR)/tBannerMain.o: $(filter-out $(OBJDIR)/tBannerMain.o,$(ALL_OBJS)) \
+$(OBJDIR)/@(BANNEROBJ): $(filter-out $(OBJDIR)/@(BANNEROBJ),$(ALL2_OBJS)) \
 																$(LIBS_DEP)
 
 #

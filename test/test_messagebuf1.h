@@ -34,12 +34,14 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_messagebuf1.h 187 2016-04-05 15:53:26Z ertl-hiro $
+ *  $Id: test_messagebuf1.h 982 2020-05-26 00:14:29Z ertl-hiro $
  */
 
 /* 
  *		メッセージバッファのテスト(1)
  */
+
+#include <kernel.h>
 
 /*
  *  ターゲット依存の定義
@@ -73,8 +75,8 @@
  */
 #ifndef TOPPERS_MACRO_ONLY
 
-extern void	task1(intptr_t exinf);
-extern void	task2(intptr_t exinf);
-extern void	task3(intptr_t exinf);
+extern void	task1(EXINF exinf);
+extern void	task2(EXINF exinf);
+extern void	task3(EXINF exinf);
 
 #endif /* TOPPERS_MACRO_ONLY */

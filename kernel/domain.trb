@@ -36,7 +36,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 #
-#   $Id: domain.trb 648 2019-01-14 05:26:19Z ertl-hiro $
+#   $Id: domain.trb 878 2019-12-01 20:31:00Z ertl-hiro $
 #
 
 #
@@ -114,9 +114,9 @@ else
   #
   $twdList.each do |key, params|
     if params.has_key?(:nfymode)
-      params[:twdid] = "TWD#{key}"
       params[:domain] = params[:domid].val
-      params[:nfyhdr] = generateNotifyHandler(key, params, :twdid)
+      params[:nfyhdr] = "_kernel_twdhdr_#{key}"
+      generateNotifyHandler(key, params, nil)
     else
       # 通知方法の指定の記述を省略した場合［NGKI5097］
       params[:nfyhdr] = "NULL"

@@ -4,7 +4,7 @@
  *
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  *
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,7 +36,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  *
- *  $Id: xuartps.c 624 2018-12-29 02:08:58Z ertl-hiro $
+ *  $Id: xuartps.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /*
@@ -64,7 +64,7 @@ typedef struct sio_port_initialization_block {
  */
 struct sio_port_control_block {
 	const SIOPINIB *p_siopinib;		/* SIOポート初期化ブロック */
-	intptr_t	exinf;				/* 拡張情報 */
+	EXINF		exinf;				/* 拡張情報 */
 	bool_t		opened;				/* オープン済み */
 };
 
@@ -121,7 +121,9 @@ xuartps_terminate(void)
 			 *  送信FIFOが空になるまで待つ
 			 */
 			while ((sil_rew_mem(XUARTPS_SR(p_siopcb->p_siopinib->base))
-											& XUARTPS_SR_TXEMPTY) == 0U);
+											& XUARTPS_SR_TXEMPTY) == 0U) {
+				sil_dly_nse(100);
+			}
 
 			/*
 			 *  オープンされているSIOポートのクローズ
@@ -135,7 +137,7 @@ xuartps_terminate(void)
  *  SIOポートのオープン
  */
 SIOPCB *
-xuartps_opn_por(ID siopid, intptr_t exinf)
+xuartps_opn_por(ID siopid, EXINF exinf)
 {
 	SIOPCB		*p_siopcb;
 	uintptr_t	base;

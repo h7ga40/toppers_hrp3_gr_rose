@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_ovrhdr4.c 596 2018-12-10 07:23:21Z ertl-hiro $
+ *  $Id: test_ovrhdr4.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /* 
@@ -71,7 +71,7 @@
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 	T_ROVR	rovr;

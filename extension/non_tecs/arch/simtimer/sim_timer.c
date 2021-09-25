@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2018-2019 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2018-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: sim_timer.c 759 2019-09-13 04:27:54Z ertl-hiro $
+ *  $Id: sim_timer.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /*
@@ -344,7 +344,7 @@ static INT_EVENT	*p_next_event;
  *  タイマの起動処理
  */
 void
-target_timer_initialize(intptr_t exinf)
+target_timer_initialize(EXINF exinf)
 {
 	current_simtim = SIMTIM_INIT_CURRENT;
 	hrt_event.enable = false;
@@ -362,7 +362,7 @@ target_timer_initialize(intptr_t exinf)
  *  タイマの停止処理
  */
 void
-target_timer_terminate(intptr_t exinf)
+target_timer_terminate(EXINF exinf)
 {
 	hrt_event.enable = false;
 	twd_event.enable = false;

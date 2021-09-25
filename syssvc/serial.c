@@ -251,7 +251,7 @@ gen_ercd_wait(ER rercd, SPCB *p_spcb)
  *  シリアルインタフェースドライバの初期化ルーチン
  */
 void
-serial_initialize(intptr_t exinf)
+serial_initialize(EXINF exinf)
 {
 	uint_t	i;
 	SPCB	*p_spcb;
@@ -668,7 +668,7 @@ _serial_ref_por(ID portid, T_SERIAL_RPOR *pk_rpor)
  *  シリアルポートからの送信可能コールバック
  */
 void
-sio_irdy_snd(intptr_t exinf)
+sio_irdy_snd(EXINF exinf)
 {
 	SPCB	*p_spcb;
 
@@ -706,7 +706,7 @@ sio_irdy_snd(intptr_t exinf)
  *  シリアルポートからの受信通知コールバック
  */
 void
-sio_irdy_rcv(intptr_t exinf)
+sio_irdy_rcv(EXINF exinf)
 {
 	SPCB	*p_spcb;
 	char	c;

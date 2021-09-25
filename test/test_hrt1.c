@@ -36,7 +36,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_hrt1.c 746 2019-07-15 19:46:59Z ertl-hiro $
+ *  $Id: test_hrt1.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /*
@@ -70,7 +70,7 @@ char	*recent_hrtcnt_pos;
 uint_t	cyclic_count;
 
 void
-cyclic_handler(intptr_t exinf)
+cyclic_handler(EXINF exinf)
 {
 	HRTCNT		hrtcnt, prev_hrtcnt;
 	char		*prev_hrtcnt_pos;
@@ -92,7 +92,7 @@ cyclic_handler(intptr_t exinf)
 }
 
 void
-main_task(intptr_t exinf)
+main_task(EXINF exinf)
 {
 	HRTCNT		hrtcnt, prev_hrtcnt;
 	char		*prev_hrtcnt_pos;

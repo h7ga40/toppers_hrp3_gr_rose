@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_sysman2.c 764 2019-10-01 12:50:23Z ertl-hiro $
+ *  $Id: test_sysman2.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /* 
@@ -283,7 +283,7 @@ volatile bool_t		task9_flag;
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 void
-alarm1_handler(intptr_t exinf)
+alarm1_handler(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -341,7 +341,7 @@ alarm1_handler(intptr_t exinf)
 }
 
 void
-alarm2_handler(intptr_t exinf)
+alarm2_handler(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -413,7 +413,7 @@ extsvc3_routine(intptr_t par1, intptr_t par2, intptr_t par3,
 }
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 	ID		tskid;
@@ -491,7 +491,7 @@ task1(intptr_t exinf)
 }
 
 void
-task10(intptr_t exinf)
+task10(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -507,7 +507,7 @@ task10(intptr_t exinf)
 }
 
 void
-task11(intptr_t exinf)
+task11(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -523,7 +523,7 @@ task11(intptr_t exinf)
 }
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -539,7 +539,7 @@ task2(intptr_t exinf)
 }
 
 void
-task3(intptr_t exinf)
+task3(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -555,7 +555,7 @@ task3(intptr_t exinf)
 }
 
 void
-task4(intptr_t exinf)
+task4(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -573,7 +573,7 @@ task4(intptr_t exinf)
 }
 
 void
-task5(intptr_t exinf)
+task5(EXINF exinf)
 {
 	ER_UINT	ercd;
 	ID		tskid;
@@ -616,7 +616,7 @@ task5(intptr_t exinf)
 }
 
 void
-task6(intptr_t exinf)
+task6(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -629,7 +629,7 @@ task6(intptr_t exinf)
 }
 
 void
-task7(intptr_t exinf)
+task7(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -641,7 +641,7 @@ task7(intptr_t exinf)
 }
 
 void
-task8(intptr_t exinf)
+task8(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -653,7 +653,7 @@ task8(intptr_t exinf)
 }
 
 void
-task9(intptr_t exinf)
+task9(EXINF exinf)
 {
 	ER_UINT	ercd;
 

@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: simt_systim1_64hrt.c 738 2019-07-10 01:01:21Z ertl-hiro $
+ *  $Id: simt_systim1_64hrt.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /* 
@@ -324,15 +324,14 @@
  */
 #include "target_timer.h"
 
-#define current_hrtcnt			_kernel_current_hrtcnt
-extern HRTCNT current_hrtcnt;
+extern HRTCNT _kernel_current_hrtcnt;
 
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 static uint_t	alarm1_count = 0;
 
 void
-alarm1_handler(intptr_t exinf)
+alarm1_handler(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -450,7 +449,7 @@ alarm1_handler(intptr_t exinf)
 static uint_t	alarm2_count = 0;
 
 void
-alarm2_handler(intptr_t exinf)
+alarm2_handler(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -520,7 +519,7 @@ alarm2_handler(intptr_t exinf)
 static uint_t	alarm3_count = 0;
 
 void
-alarm3_handler(intptr_t exinf)
+alarm3_handler(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -556,7 +555,7 @@ alarm3_handler(intptr_t exinf)
 }
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 

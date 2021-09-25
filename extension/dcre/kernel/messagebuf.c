@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2019 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: messagebuf.c 674 2019-03-08 03:46:38Z ertl-hiro $
+ *  $Id: messagebuf.c 984 2020-06-26 14:39:43Z ertl-hiro $
  */
 
 /*
@@ -310,8 +310,9 @@ send_message(MBFCB *p_mbfcb, const void *msg, uint_t msgsz)
 	if (!queue_empty(&(p_mbfcb->rwait_queue))) {
 		p_tcb = (TCB *) queue_delete_next(&(p_mbfcb->rwait_queue));
 		memcpy(((WINFO_RMBF *)(p_tcb->p_winfo))->msg, msg, msgsz);
-		wait_complete(p_tcb);
-		p_tcb->p_winfo->wercd = (ER_UINT)(msgsz);
+		wait_dequeue_tmevtb(p_tcb);
+		p_tcb->p_winfo->wercd = (ER_UINT) msgsz;
+		make_non_wait(p_tcb);
 		return(true);
 	}
 	else if (queue_empty(&(p_mbfcb->swait_queue))

@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2019 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: task_term.c 295 2018-03-24 09:36:27Z ertl-hiro $
+ *  $Id: task_term.c 926 2019-12-18 20:12:20Z ertl-hiro $
  */
 
 /*
@@ -133,14 +133,10 @@ ext_tsk(void)
 			 */
 			enadsp = true;
 		}
-		if (t_get_ipm() != TIPM_ENAALL) {
-			/*
-			 *  割込み優先度マスク（IPM）がTIPM_ENAALL以外の状態で
-			 *  ext_tskが呼ばれた場合は，IPMをTIPM_ENAALLにしてからタス
-			 *  クを終了する．［NGKI1168］
-			 */
-			t_set_ipm(TIPM_ENAALL);
-		}
+		/*
+		 *  set_dspflgは，割込み優先度マスクをTIPM_ENAALLにする．
+		 *  ［NGKI1168］
+		 */
 		set_dspflg();
 	}
 	task_terminate(p_runtsk);				/* ［NGKI3449］*/
@@ -169,8 +165,8 @@ ras_ter(ID tskid)
 	CHECK_TSKCTX_UNL();							/*［NGKI3470］［NGKI3471］*/
 	CHECK_ID(VALID_TSKID(tskid));				/*［NGKI3472］*/
 	p_tcb = get_tcb(tskid);
-	CHECK_ILUSE(p_tcb != p_runtsk);				/*［NGKI3475］*/
 	CHECK_ACPTN(p_tcb->p_tinib->acvct.acptn2);	/*［NGKI3474］*/
+	CHECK_ILUSE(p_tcb != p_runtsk);				/*［NGKI3475］*/
 
 	lock_cpu();
 	if (TSTAT_DORMANT(p_tcb->tstat)) {

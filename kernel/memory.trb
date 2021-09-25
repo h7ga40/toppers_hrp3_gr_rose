@@ -4,7 +4,7 @@
 #       Toyohashi Open Platform for Embedded Real-Time Systems/
 #       High Reliable system Profile Kernel
 # 
-#   Copyright (C) 2016-2018 by Embedded and Real-Time Systems Laboratory
+#   Copyright (C) 2016-2019 by Embedded and Real-Time Systems Laboratory
 #               Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #   上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,7 +36,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 # 
-#   $Id: memory.trb 648 2019-01-14 05:26:19Z ertl-hiro $
+#   $Id: memory.trb 986 2020-07-18 18:48:24Z ertl-hiro $
 # 
 
 #
@@ -98,7 +98,9 @@ $memObj.each do |_, params|
     if params[:linker] && params[:memreg] == $commonMemreg[:stdrom]
       params[:stdregion] = true
     end
-    if (params[:mematr] & $TA_EXEC) != 0
+    if params[:linkonly]
+      stdmematr = $TA_LOSEC
+    elsif (params[:mematr] & $TA_EXEC) != 0
       stdmematr = $TA_TEXTSEC
     else
       stdmematr = $TA_RODATASEC
@@ -181,8 +183,8 @@ $memObj.each do |key, params|
         # 無所属の標準共有コード領域
         mltype = 3
       else
-        srodata_rom = (params[:memreg] \
-							!= $standardMemreg[params[:domain]][:stdsram])
+        srodata_rom = ($cfgData[:ATT_REG][params[:memreg]][:regatr] \
+														& $TA_NOWRITE) != 0
         if (params[:mematr] & $TA_EXEC) == 0 && params[:stdmematr] \
 										&& params[:acptn2] == $TACP_SHARED
           # 標準共有定数データ領域
@@ -457,7 +459,9 @@ $memObj.each do |key, params|
     # セクション種別
     short = (params[:sdata] ? "s" : "")
     if params[:nowrite]
-      if (params[:mematr] & $TA_EXEC) != 0
+      if params[:linkonly]
+        seclabel = short + "linkonly_"
+      elsif (params[:mematr] & $TA_EXEC) != 0
         seclabel = short + "text_"
       else
         seclabel = short + "rodata_"

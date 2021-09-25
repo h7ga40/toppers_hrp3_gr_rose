@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: simt_twd1.c 586 2018-12-02 09:31:05Z ertl-hiro $
+ *  $Id: simt_twd1.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /*
@@ -170,7 +170,7 @@
 static uint_t	alarm1_count = 0;
 
 void
-alarm1_handler(intptr_t exinf)
+alarm1_handler(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -247,7 +247,7 @@ HRT_HANDLER(void)
 }
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -287,7 +287,7 @@ task1(intptr_t exinf)
 }
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -325,7 +325,7 @@ task2(intptr_t exinf)
 static uint_t	task3_count = 0;
 
 void
-task3(intptr_t exinf)
+task3(EXINF exinf)
 {
 
 	switch (++task3_count) {

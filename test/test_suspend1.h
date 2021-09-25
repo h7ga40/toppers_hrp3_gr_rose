@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_suspend1.h 446 2018-08-17 16:24:47Z ertl-hiro $
+ *  $Id: test_suspend1.h 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /* 
@@ -71,9 +71,9 @@
  */
 #ifndef TOPPERS_MACRO_ONLY
 
-extern void	task1(intptr_t exinf);
-extern void	task2(intptr_t exinf);
-extern void	task3(intptr_t exinf);
-extern void	alarm1_handler(intptr_t exinf);
+extern void	task1(EXINF exinf);
+extern void	task2(EXINF exinf);
+extern void	task3(EXINF exinf);
+extern void	alarm1_handler(EXINF exinf);
 
 #endif /* TOPPERS_MACRO_ONLY */

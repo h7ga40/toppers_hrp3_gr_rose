@@ -37,7 +37,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 # 
-#  $Id: svc.def 772 2019-10-02 08:55:27Z ertl-hiro $
+#  $Id: svc.def 980 2020-05-25 07:06:43Z ertl-hiro $
 # 
 
 #
@@ -74,7 +74,7 @@
 -9		S				ER		ter_tsk(ID tskid)
 		S				ER		chg_pri(ID tskid, PRI tskpri)
 		S				ER		get_pri(ID tskid, PRI *p_tskpri)
-		S				ER		get_inf(intptr_t *p_exinf)
+		S				ER		get_inf(EXINF *p_exinf)
 -13		S				ER		slp_tsk()
 		S				ER		tslp_tsk(TMO tmout)
 		S				ER		wup_tsk(ID tskid)

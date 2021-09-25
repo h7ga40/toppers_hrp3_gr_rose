@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: simt_ovrhdr3.c 608 2018-12-17 00:34:06Z ertl-hiro $
+ *  $Id: simt_ovrhdr3.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /*
@@ -122,7 +122,7 @@
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 void
-alarm1_handler(intptr_t exinf)
+alarm1_handler(EXINF exinf)
 {
 
 	check_point(6);
@@ -146,7 +146,7 @@ cpuexc_handler(void *p_excinf)
 }
 
 void
-overrun_handler(ID tskid, intptr_t exinf)
+overrun_handler(ID tskid, EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -162,7 +162,7 @@ overrun_handler(ID tskid, intptr_t exinf)
 }
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 	T_ROVR	rovr;
@@ -245,7 +245,7 @@ task1(intptr_t exinf)
 }
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 

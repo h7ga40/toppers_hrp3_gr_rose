@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_cpuexc3.c 186 2016-04-05 15:49:42Z ertl-hiro $
+ *  $Id: test_cpuexc3.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /* 
@@ -108,7 +108,7 @@
 volatile bool_t	alm1_flag = false;
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	check_point(0);
 }
@@ -125,7 +125,7 @@ task2(intptr_t exinf)
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 void
-alarm1_handler(intptr_t exinf)
+alarm1_handler(EXINF exinf)
 {
 
 	check_point(3);
@@ -159,7 +159,7 @@ cpuexc_handler(void *p_excinf)
 }
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 

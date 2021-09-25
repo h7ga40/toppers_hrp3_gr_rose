@@ -36,7 +36,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 #
-#  $Id: cfg.rb 159 2018-08-16 00:59:10Z ertl-hiro $
+#  $Id: cfg.rb 188 2020-06-14 09:52:45Z ertl-hiro $
 #
 
 if $0 == __FILE__
@@ -58,17 +58,17 @@ require "SRecord.rb"
 VERSION = "1.6.0"
 
 # cfg1_out関係
-CFG1_PREFIX        = "TOPPERS_cfg_"
-CFG1_MAGIC_NUM     = "TOPPERS_magic_number"
-CFG1_SIZEOF_SIGNED = "TOPPERS_sizeof_signed_t"
-CFG1_SIZEOF_INTPTR = "TOPPERS_sizeof_intptr_t"
+CFG1_PREFIX         = "TOPPERS_cfg_"
+CFG1_MAGIC_NUM      = "TOPPERS_magic_number"
+CFG1_SIZEOF_SIGNED  = "TOPPERS_sizeof_signed_t"
+CFG1_SIZEOF_INTPTR  = "TOPPERS_sizeof_intptr_t"
 CFG1_SIZEOF_CHARPTR = "TOPPERS_sizeof_char_ptr_t"
-CFG1_OUT_C         = "cfg1_out.c"
-CFG1_OUT_DB        = "cfg1_out.db"
-CFG1_OUT_SREC      = "cfg1_out.srec"
-CFG1_OUT_SYMS      = "cfg1_out.syms"
-CFG1_OUT_TIMESTAMP = "cfg1_out.timestamp"
-CFG1_OUT_TARGET_H  = "target_cfg1_out.h"
+CFG1_OUT_C          = "cfg1_out.c"
+CFG1_OUT_DB         = "cfg1_out.db"
+CFG1_OUT_SREC       = "cfg1_out.srec"
+CFG1_OUT_SYMS       = "cfg1_out.syms"
+CFG1_OUT_TIMESTAMP  = "cfg1_out.timestamp"
+CFG1_OUT_TARGET_H   = "target_cfg1_out.h"
 
 # cfg2_out関係
 CFG2_OUT_DB        = "cfg2_out.db"
@@ -579,7 +579,7 @@ OptionParser.new("Usage: cfg.rb [options] CONFIG-FILE", 40) do |opt|
     $pass = val
   end
   opt.on("-I DIRECTORY", "--include-directory DIRECTORY",
-										 "include directory") do |val|
+										"include directory") do |val|
     $includeDirectories.push(val)
   end
   opt.on("-T TRB-FILE", "--trb-file TRB-FILE",
@@ -612,10 +612,10 @@ OptionParser.new("Usage: cfg.rb [options] CONFIG-FILE", 40) do |opt|
     $omitOutputDb = true
   end
   opt.on("--enable-domain", "enable DOMAIN support") do
-	$supportDomain = true
+    $supportDomain = true
   end
   opt.on("--enable-class", "enable CLASS support") do
-	$supportClass = true
+    $supportClass = true
   end
   opt.on("-v", "--version", "show version number") do
     puts(opt.ver)
@@ -654,12 +654,12 @@ end
 #
 case $kernel
 when /^hrp/
-	$supportDomain = true
+  $supportDomain = true
 when /^fmp/
-	$supportClass = true
+  $supportClass = true
 when /^hrmp/
-	$supportDomain = true
-	$supportClass = true
+  $supportDomain = true
+  $supportClass = true
 end
 
 #

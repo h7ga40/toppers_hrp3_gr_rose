@@ -227,5 +227,7 @@ log_inh_enter
 log_inh_leave
 log_exc_enter
 log_exc_leave
+log_extsvc_enter
+log_extsvc_leave
 
 INCLUDE "target"

@@ -224,7 +224,7 @@ static const SIOPINIB siopinib_sci8 = {
  */
 struct sio_port_control_block {
 	const SIOPINIB	*p_siopinib; 				/* シリアルI/Oポート初期化ブロック */
-	intptr_t 	exinf;			 				/* 拡張情報 */
+	EXINF 	exinf;			 				/* 拡張情報 */
 	bool_t		openflag;						/* オープン済みフラグ */
 	bool_t		sendflag;						/* 送信割込みイネーブルフラグ */
 	bool_t		getready;						/* 文字を受信した状態 */
@@ -296,7 +296,7 @@ uart_setmode(const SIOPINIB *p_siopinib, uint32_t baud, uint8_t cks)
  *  SIOドライバの初期化
  */
 void
-sio_initialize(intptr_t exinf)
+sio_initialize(EXINF exinf)
 {
 	SIOPCB	*p_siopcb;
 	uint_t	i;
@@ -372,7 +372,7 @@ sio_initialize(intptr_t exinf)
  *  シリアルI/Oポートのオープン
  */
 SIOPCB *
-sio_opn_por(ID siopid, intptr_t exinf)
+sio_opn_por(ID siopid, EXINF exinf)
 {
 	SIOPCB          *p_siopcb;
 	const SIOPINIB  *p_siopinib;
@@ -440,7 +440,7 @@ sio_cls_por(SIOPCB *p_siopcb)
 /*
  *  SIOの割込みハンドラ
  */
-void sio_isr_txi(intptr_t exinf)
+void sio_isr_txi(EXINF exinf)
 {
 	SIOPCB	*p_siopcb = get_siopcb(exinf);
 
@@ -459,7 +459,7 @@ void sio_isr_txi(intptr_t exinf)
 /*
  *  SIOの割込みハンドラ
  */
-void sio_isr_rxi(intptr_t exinf)
+void sio_isr_rxi(EXINF exinf)
 {
 	SIOPCB	*p_siopcb = get_siopcb(exinf);
 

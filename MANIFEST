@@ -1,5 +1,5 @@
 PACKAGE hrp3
-VERSION 3.2.0
+VERSION 3.3.0
 
 configure.rb
 MANIFEST
@@ -194,5 +194,6 @@ sample/tSample2.h
 
 INCLUDE cfg/MANIFEST
 INCLUDE test/MANIFEST
+INCLUDE test_cfg/MANIFEST
 INCLUDE extension/MANIFEST
 INCLUDE target/dummy_gcc/MANIFEST

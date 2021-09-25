@@ -276,6 +276,8 @@
 #define log_inh_leave				_kernel_log_inh_leave
 #define log_exc_enter				_kernel_log_exc_enter
 #define log_exc_leave				_kernel_log_exc_leave
+#define log_extsvc_enter			_kernel_log_extsvc_enter
+#define log_extsvc_leave			_kernel_log_extsvc_leave
 
 
 #include "target_rename.h"

@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_mprot1.c 370 2018-04-15 05:43:33Z ertl-hiro $
+ *  $Id: test_mprot1.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /* 
@@ -215,7 +215,7 @@ cpuexc_handler(void *p_excinf)
 }
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -283,7 +283,7 @@ task1(intptr_t exinf)
 }
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 

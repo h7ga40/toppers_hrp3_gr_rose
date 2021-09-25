@@ -60,7 +60,7 @@ extern void	tPutLogSIOPort_initialize(void);
 
 #else /* TOPPERS_OMIT_TECS */
 
-extern void	sio_initialize(intptr_t exinf);
+extern void	sio_initialize(EXINF exinf);
 extern void	target_fput_initialize(void);
 
 #endif /* TOPPERS_OMIT_TECS */

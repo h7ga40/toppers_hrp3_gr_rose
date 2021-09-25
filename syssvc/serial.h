@@ -133,7 +133,7 @@ extern ER		_serial_ref_por(ID portid, T_SERIAL_RPOR *pk_rpor) throw();
 /*
  *  シリアルインタフェースドライバの初期化ルーチン
  */
-extern void		serial_initialize(intptr_t exinf) throw();
+extern void		serial_initialize(EXINF exinf) throw();
 
 /*
  *  シリアルインタフェースドライバからの未送信文字の取出し

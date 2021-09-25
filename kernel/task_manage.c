@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2019 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: task_manage.c 727 2019-06-08 05:53:25Z ertl-hiro $
+ *  $Id: task_manage.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /*
@@ -48,7 +48,6 @@
 #include "check.h"
 #include "task.h"
 #include "taskhook.h"
-#include "wait.h"
 
 /*
  *  トレースログマクロのデフォルト定義
@@ -345,18 +344,16 @@ get_pri(ID tskid, PRI *p_tskpri)
 #ifdef TOPPERS_get_inf
 
 ER
-get_inf(intptr_t *p_exinf)
+get_inf(EXINF *p_exinf)
 {
 	ER		ercd;
 
 	LOG_GET_INF_ENTER(p_exinf);
 	CHECK_TSKCTX_UNL();							/*［NGKI1213］［NGKI1214］*/
-	CHECK_MACV_WRITE(p_exinf, intptr_t);		/*［NGKI1215］*/
+	CHECK_MACV_WRITE(p_exinf, EXINF);			/*［NGKI1215］*/
 
-	lock_cpu();
 	*p_exinf = p_runtsk->p_tinib->exinf;		/*［NGKI1216］*/
 	ercd = E_OK;
-	unlock_cpu();
 
   error_exit:
 	LOG_GET_INF_LEAVE(ercd, p_exinf);

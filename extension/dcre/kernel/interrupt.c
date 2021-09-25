@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: interrupt.c 670 2019-02-22 07:43:02Z ertl-hiro $
+ *  $Id: interrupt.c 924 2019-12-18 20:03:13Z ertl-hiro $
  */
 
 /*
@@ -703,8 +703,8 @@ chg_ipm(PRI intpri)
 	CHECK_ACPTN(sysstat_acvct.acptn2);			/*［NGKI3110］*/
 
 	lock_cpu();
-	t_set_ipm(intpri);							/*［NGKI3111］*/
 	if (intpri == TIPM_ENAALL && enadsp) {
+		/* set_dspflgは，割込み優先度マスクをTIPM_ENAALLにする．*/
 		set_dspflg();
 		if (p_runtsk->raster && p_runtsk->enater) {
 			task_terminate(p_runtsk);
@@ -719,6 +719,7 @@ chg_ipm(PRI intpri)
 		}
 	}
 	else {
+		t_set_ipm(intpri);						/*［NGKI3111］*/
 		dspflg = false;
 		ercd = E_OK;
 	}

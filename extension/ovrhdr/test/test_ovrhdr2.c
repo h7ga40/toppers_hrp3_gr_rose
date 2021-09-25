@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_ovrhdr2.c 596 2018-12-10 07:23:21Z ertl-hiro $
+ *  $Id: test_ovrhdr2.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /* 
@@ -310,7 +310,7 @@ volatile bool_t	task2_flag12 = false;
 #endif /* PREPARE_RETURN_CPUEXC */
 
 void
-task3(intptr_t exinf)
+task3(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -323,7 +323,7 @@ task3(intptr_t exinf)
 static uint_t	alarm1_count = 0;
 
 void
-alarm1_handler(intptr_t exinf)
+alarm1_handler(EXINF exinf)
 {
 
 	switch (++alarm1_count) {
@@ -422,7 +422,7 @@ cpuexc_handler(void *p_excinf)
 static uint_t	overrun_count = 0;
 
 void
-overrun_handler(ID tskid, intptr_t exinf)
+overrun_handler(ID tskid, EXINF exinf)
 {
 
 	switch (++overrun_count) {
@@ -481,7 +481,7 @@ overrun_handler(ID tskid, intptr_t exinf)
 }
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 	T_ROVR	rovr;
@@ -568,7 +568,7 @@ task1(intptr_t exinf)
 static uint_t	task2_count = 0;
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 	T_ROVR	rovr;

@@ -49,6 +49,6 @@
 /*
  *  カーネル起動メッセージの出力
  */
-extern void	print_banner(intptr_t exinf) throw();
+extern void	print_banner(EXINF exinf) throw();
 
 #endif /* TOPPERS_BANNER_H */

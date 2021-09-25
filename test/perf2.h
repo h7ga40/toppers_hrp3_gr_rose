@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: perf2.h 3 2015-08-08 15:11:16Z ertl-hiro $
+ *  $Id: perf2.h 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /*
@@ -63,4 +63,4 @@
 /*
  *  関数のプロトタイプ宣言
  */
-extern void	main_task(intptr_t exinf);
+extern void	main_task(EXINF exinf);

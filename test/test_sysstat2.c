@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_sysstat2.c 266 2018-03-04 08:40:05Z ertl-hiro $
+ *  $Id: test_sysstat2.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /* 
@@ -209,7 +209,7 @@
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 void
-task11(intptr_t exinf)
+task11(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -404,7 +404,7 @@ task11(intptr_t exinf)
 static uint_t	task12_count = 0;
 
 void
-task12(intptr_t exinf)
+task12(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -501,7 +501,7 @@ task12(intptr_t exinf)
 static uint_t	task21_count = 0;
 
 void
-task21(intptr_t exinf)
+task21(EXINF exinf)
 {
 	ER_UINT	ercd;
 

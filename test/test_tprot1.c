@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_tprot1.c 787 2019-10-04 06:41:43Z ertl-hiro $
+ *  $Id: test_tprot1.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /* 
@@ -297,7 +297,7 @@ volatile bool_t	task3_flag;
 static uint_t	cyclic1_count = 0;
 
 void
-cyclic1_handler(intptr_t exinf)
+cyclic1_handler(EXINF exinf)
 {
 	ER_UINT	ercd;
 	ID		tskid;
@@ -667,7 +667,7 @@ cyclic1_handler(intptr_t exinf)
 }
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 	ID		tskid;
@@ -727,7 +727,7 @@ task1(intptr_t exinf)
 }
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -753,7 +753,7 @@ task2(intptr_t exinf)
 }
 
 void
-task3(intptr_t exinf)
+task3(EXINF exinf)
 {
 
 	check_point(5);

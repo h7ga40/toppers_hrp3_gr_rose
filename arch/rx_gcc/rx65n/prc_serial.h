@@ -60,12 +60,12 @@ typedef struct sio_port_control_block	SIOPCB;
 /*
  *  SIOドライバの初期化
  */
-extern void sio_initialize(intptr_t exinf);
+extern void sio_initialize(EXINF exinf);
 
 /*
  *  シリアルI/Oポートのオープン
  */
-extern SIOPCB *sio_opn_por(ID siopid, intptr_t exinf);
+extern SIOPCB *sio_opn_por(ID siopid, EXINF exinf);
 
 /*
  *  シリアルI/Oポートのクローズ
@@ -75,8 +75,8 @@ extern void sio_cls_por(SIOPCB *p_siopcb);
 /*
  *  SIOの割込みハンドラ
  */
-extern void sio_isr_rxi(intptr_t exinf);
-extern void sio_isr_txi(intptr_t exinf);
+extern void sio_isr_rxi(EXINF exinf);
+extern void sio_isr_txi(EXINF exinf);
 
 /*
  *  シリアルI/Oポートへの文字送信
@@ -101,12 +101,12 @@ extern void sio_dis_cbr(SIOPCB *siopcb, uint_t cbrtn);
 /*
  *  シリアルI/Oポートからの送信可能コールバック
  */
-extern void sio_irdy_snd(intptr_t exinf);
+extern void sio_irdy_snd(EXINF exinf);
 
 /*
  *  シリアルI/Oポートからの受信通知コールバック
  */
-extern void sio_irdy_rcv(intptr_t exinf);
+extern void sio_irdy_rcv(EXINF exinf);
 
 #endif /* TOPPERS_MACRO_ONLY */
 #endif /* TOPPERS_PRC_SERIAL_H */

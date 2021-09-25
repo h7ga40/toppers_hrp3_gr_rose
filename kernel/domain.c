@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      High Reliable system Profile Kernel
  * 
- *  Copyright (C) 2008-2019 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2008-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: domain.c 711 2019-03-29 14:06:10Z ertl-hiro $
+ *  $Id: domain.c 1004 2020-11-03 11:05:46Z ertl-hiro $
  */
 
 /*
@@ -291,6 +291,11 @@ twdtimer_control(void)
 
 /*
  *  システム周期の実行開始
+ *
+ *  この関数は，CPUロック状態で呼び出される．タスクコンテキストから呼
+ *  び出される時は，この関数の処理途中でタスク切換えが起こらないように，
+ *  割込み優先度マスクを，システム周期／タイムウィンドウ切換え割込みの
+ *  割込み優先度に設定して呼び出される．
  */
 #ifdef TOPPERS_scycstart
 
@@ -302,7 +307,12 @@ scyc_start(void)
 		 *  システム周期オーバラン
 		 */
 		twdtimer_stop();
+		pending_twdswitch = false;
 		raise_scycovr_exception();
+		/*
+		 *  システム周期オーバラン例外ハンドラからリターンすると，次の
+		 *  システム周期に切り換える［NGKI0635］．
+		 */
 	}
 
 	p_cursom = p_nxtsom;
@@ -337,7 +347,7 @@ scyc_start(void)
 /*
  *  システム周期切換え処理
  *
- *  この関数は，CPUロック状態で呼び出される．
+ *  この関数は，非タスクコンテキストで，CPUロック状態で呼び出される．
  */
 #ifdef TOPPERS_scycswitch
 
@@ -371,7 +381,7 @@ suspend_proc_tmevt(void)
 {
 	if (twdtimer_enable) {
 		/*
-		 *  タイムウィンドウをの時間を使い切っているか？
+		 *  タイムウィンドウの時間を使い切っているか？
 		 */
 		return(target_twdtimer_get_current() == 0U);
 	}
@@ -383,6 +393,14 @@ suspend_proc_tmevt(void)
 	}
 }
 
+/*
+ *  タイムウィンドウの実行開始
+ *
+ *  この関数は，CPUロック状態で呼び出される．タスクコンテキストから呼
+ *  び出される時は，この関数の処理途中でタスク切換えが起こらないように，
+ *  割込み優先度マスクを，システム周期／タイムウィンドウ切換え割込みの
+ *  割込み優先度に設定して呼び出される．
+ */
 void
 twd_start(void)
 {
@@ -413,7 +431,8 @@ twd_start(void)
 	}
 
 	/*
-	 *  通知ハンドラが登録されている場合，CPUロック解除状態で呼び出す．
+	 *  タイムウィンドウ切換え通知ハンドラが登録されている場合，CPUロッ
+	 *  ク解除状態で呼び出す．
 	 */
 	if (p_runtwd != NULL && p_runtwd->nfyhdr != NULL) {
 		unlock_cpu();
@@ -438,6 +457,9 @@ twd_start(void)
 void
 twd_switch(void)
 {
+	assert(sense_context());
+	assert(!sense_lock());
+
 	lock_cpu();
 	if (twdtimer_enable && left_twdtim == 0U) {
 		if (dspflg) {
@@ -475,13 +497,32 @@ twd_switch(void)
 
 /*
  *  タスクディスパッチ可能状態への遷移
+ *
+ *  この関数は，タスクコンテキストから呼ばれたサービスコールから，CPU
+ *  ロック状態で呼び出される．
  */
 #ifdef TOPPERS_setdspflg
 
 void
 set_dspflg(void)
 {
-	dspflg = true;
+	ACPTN	saved_rundom;
+
+	/*
+	 *  システム周期／タイムウィンドウの実行開始処理の中で，CPUロック
+	 *  状態を解除する場合があるため，その時にシステム周期／タイムウィ
+	 *  ンドウ切換え割込みやタスク切換えが起きないように，割込み優先度
+	 *  マスクを，システム周期／タイムウィンドウ切換え割込みの割込み優
+	 *  先度に設定する．
+	 */
+	t_set_ipm(INTPRI_TIMER);
+	dspflg = false;
+
+	/*
+	 *  rundomを保存し，TACP_KERNELにする．
+	 */
+	saved_rundom = rundom;
+	rundom = TACP_KERNEL;
 
 	if (pending_scycswitch) {
 		/*
@@ -493,12 +534,23 @@ set_dspflg(void)
 	}
 	else if (pending_twdswitch) {
 		/*
-		 *  次のタイムウィンドウに
+		 *  保留していたタイムウィンドウ切換え処理を実行
 		 */
 		p_runtwd += 1;
 		twd_start();
 		pending_twdswitch = false;
 	}
+
+	/*
+	 *  割込み優先度マスクをTIPM_ENAALLに戻す．
+	 */
+	t_set_ipm(TIPM_ENAALL);
+	dspflg = true;
+
+	/*
+	 *  rundomを元に戻す．
+	 */
+	rundom = saved_rundom;
 
 	/*
 	 *  実行すべきタスクの更新
@@ -518,6 +570,7 @@ chg_som(ID somid)
 {
 	const SOMINIB	*p_sominib;
 	ER				ercd;
+	ACPTN			saved_rundom;
 
 	LOG_CHG_SOM_ENTER(somid);
 	CHECK_TSKCTX_UNL();							/*［NGKI5031］［NGKI5032］*/
@@ -533,27 +586,60 @@ chg_som(ID somid)
 
 	lock_cpu();
 	p_nxtsom = p_sominib;						/*［NGKI5036］*/
-	if (p_cursom == NULL) {
+	if (p_cursom == NULL && p_sominib != NULL) {
 		/*
-		 *  現在のシステム動作モードがシステム周期停止モードの場合［NGKI5037］
+		 *  システム周期停止モードから他のモードに変更する場合［NGKI5037］
 		 */
-		if (p_sominib != NULL) {
-			update_current_evttim();
-			scyc_tmevtb.evttim = calc_current_evttim_ub();
 
-			if (dspflg) {
-				/*
-				 *  システム周期の開始
-				 */
-				scyc_start();
-				update_schedtsk();
-				if (p_runtsk != p_schedtsk) {
-					dispatch();
-				}
+		/*
+		 *  基準時刻の設定
+		 */
+		update_current_evttim();
+		scyc_tmevtb.evttim = calc_current_evttim_ub();
+
+		if (dspflg) {
+			/*
+			 *  システム周期／タイムウィンドウの実行開始処理の中で，
+			 *  CPUロック状態を解除する場合があるため，その時にシステ
+			 *  ム周期／タイムウィンドウ切換え割込みやタスク切換えが起
+			 *  きないように，割込み優先度マスクを，システム周期／タイ
+			 *  ムウィンドウ切換え割込みの割込み優先度に設定する．
+			 */
+			t_set_ipm(INTPRI_TIMER);
+			dspflg = false;
+
+			/*
+			 *  rundomを保存し，TACP_KERNELにする．
+			 */
+			saved_rundom = rundom;
+			rundom = TACP_KERNEL;
+
+			/*
+			 *  システム周期の開始
+			 */
+			scyc_start();
+
+			/*
+			 *  割込み優先度マスクをTIPM_ENAALLに戻す．
+			 */
+			t_set_ipm(TIPM_ENAALL);
+			dspflg = true;
+
+			/*
+			 *  rundomを元に戻す．
+			 */
+			rundom = saved_rundom;
+
+			/*
+			 *  実行すべきタスクの更新
+			 */
+			update_schedtsk();
+			if (p_runtsk != p_schedtsk) {
+				dispatch();
 			}
-			else {
-				pending_scycswitch = true;
-			}
+		}
+		else {
+			pending_scycswitch = true;
 		}
 	}
 	ercd = E_OK;

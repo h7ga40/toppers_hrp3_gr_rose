@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_tprot4.c 791 2019-10-04 07:05:47Z ertl-hiro $
+ *  $Id: test_tprot4.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /* 
@@ -208,7 +208,7 @@ poll_flag_change(ID flgid, FLGPTN orig_flgptn)
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 void
-task11(intptr_t exinf)
+task11(EXINF exinf)
 {
 	ER_UINT	ercd;
 	FLGPTN	flgptn;
@@ -273,7 +273,7 @@ task11(intptr_t exinf)
 static uint_t	task12_count = 0;
 
 void
-task12(intptr_t exinf)
+task12(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -318,7 +318,7 @@ task12(intptr_t exinf)
 }
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 	FLGPTN	flgptn;
@@ -362,7 +362,7 @@ task2(intptr_t exinf)
 }
 
 void
-task3(intptr_t exinf)
+task3(EXINF exinf)
 {
 	ER_UINT	ercd;
 	FLGPTN	flgptn;

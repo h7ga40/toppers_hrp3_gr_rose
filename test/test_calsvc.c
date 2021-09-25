@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_calsvc.c 523 2018-11-04 12:47:50Z ertl-hiro $
+ *  $Id: test_calsvc.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /* 
@@ -189,7 +189,7 @@
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 	PRI		intpri;
@@ -339,7 +339,7 @@ task1(intptr_t exinf)
 }
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 	PRI		intpri;

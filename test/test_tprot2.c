@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_tprot2.c 792 2019-10-04 07:07:42Z ertl-hiro $
+ *  $Id: test_tprot2.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /* 
@@ -240,7 +240,7 @@ volatile bool_t	task3_flag;
 static uint_t	alarm1_count = 0;
 
 void
-alarm1_handler(intptr_t exinf)
+alarm1_handler(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -297,7 +297,7 @@ alarm1_handler(intptr_t exinf)
 }
 
 void
-task11(intptr_t exinf)
+task11(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -341,7 +341,7 @@ task11(intptr_t exinf)
 }
 
 void
-task12(intptr_t exinf)
+task12(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -360,7 +360,7 @@ task12(intptr_t exinf)
 }
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -376,7 +376,7 @@ task2(intptr_t exinf)
 }
 
 void
-task3(intptr_t exinf)
+task3(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -423,7 +423,7 @@ task3(intptr_t exinf)
 }
 
 void
-task4(intptr_t exinf)
+task4(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -451,7 +451,7 @@ task4(intptr_t exinf)
 }
 
 void
-task51(intptr_t exinf)
+task51(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -513,7 +513,7 @@ task51(intptr_t exinf)
 }
 
 void
-task52(intptr_t exinf)
+task52(EXINF exinf)
 {
 	ER_UINT	ercd;
 

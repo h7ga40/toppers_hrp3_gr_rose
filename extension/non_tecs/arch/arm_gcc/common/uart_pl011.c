@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: uart_pl011.c 576 2018-11-28 00:57:26Z ertl-hiro $
+ *  $Id: uart_pl011.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /*
@@ -49,7 +49,7 @@
  *  SIOポート初期化ブロックの定義
  */
 typedef struct sio_port_initialization_block {
-	uintptr_t	base;			/* UARTレジスタのベースアドレス */
+	uEXINF	base;			/* UARTレジスタのベースアドレス */
 	uint8_t		ibrd;			/* ボーレート（整数部）レジスタの設定値 */
 	uint8_t		fbrd;			/* ボーレート（小数部）レジスタの設定値 */
 	uint8_t		lcr_h;			/* ライン制御レジスタの設定値 */
@@ -60,7 +60,7 @@ typedef struct sio_port_initialization_block {
  */
 struct sio_port_control_block {
 	const SIOPINIB *siopinib;	/* SIOポート初期化ブロック */
-	intptr_t	exinf;			/* 拡張情報 */
+	EXINF		exinf;			/* 拡張情報 */
 	bool_t		opened;			/* オープン済み */
 };
 
@@ -120,7 +120,7 @@ uart_pl011_terminate(void)
  *  SIOポートのオープン
  */
 SIOPCB *
-uart_pl011_opn_por(ID siopid, intptr_t exinf)
+uart_pl011_opn_por(ID siopid, EXINF exinf)
 {
 	SIOPCB	*p_siopcb;
 

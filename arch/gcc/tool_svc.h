@@ -54,9 +54,9 @@ get_pri(ID tskid, PRI *p_tskpri)
 }
 
 Inline ER
-get_inf(intptr_t *p_exinf)
+get_inf(EXINF *p_exinf)
 {
-	CAL_SVC_1M(ER, TFN_GET_INF, intptr_t *, p_exinf);
+	CAL_SVC_1M(ER, TFN_GET_INF, EXINF *, p_exinf);
 }
 
 Inline ER

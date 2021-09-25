@@ -5,7 +5,7 @@
 #       High Reliable system Profile Kernel
 # 
 #   Copyright (C) 2015 by FUJI SOFT INCORPORATED, JAPAN
-#   Copyright (C) 2015-2019 by Embedded and Real-Time Systems Laboratory
+#   Copyright (C) 2015-2020 by Embedded and Real-Time Systems Laboratory
 #               Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #   上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 # 
-#   $Id: task.trb 665 2019-02-03 17:06:18Z ertl-hiro $
+#   $Id: task.trb 980 2020-05-25 07:06:43Z ertl-hiro $
 # 
 
 #
@@ -88,11 +88,6 @@ class TaskObject < KernelObject
         error_illegal_id("E_PAR", params, :sstk, :tskid)
       end
 
-      # stkszが0の場合（E_PAR）［NGKI1042］
-      if params[:stksz] == 0
-        error_wrong_id("E_PAR", params, :stksz, :tskid, "zero")
-      end
-
       if params[:stk] == "NULL" || params[:stk] == 0
         #
         #  stkが省略されているか，NULLの場合の処理
@@ -111,7 +106,7 @@ class TaskObject < KernelObject
 
         # システムスタック領域の確保［NGKI1049］［NGKI1041］
         sstkName = "_kernel_sstack_#{params[:tskid]}"
-        params[:tinib_sstksz] = AllocSystemStack(sstkName, sstksz)
+        params[:tinib_sstksz] = AllocSystemStack(sstkName, sstksz, params)
         params[:tinib_sstk] = sstkName
       else
         #
@@ -168,29 +163,29 @@ class TaskObject < KernelObject
 
         # システムスタック領域の確保［NGKI1061］［NGKI1043］
         sstkName = "_kernel_sstack_#{params[:tskid]}"
-        params[:tinib_sstksz] = AllocSystemStack(sstkName, sstksz)
+        params[:tinib_sstksz] = AllocSystemStack(sstkName, sstksz, params)
         params[:tinib_sstk] = sstkName
       else
         #
         #  sstkがNULLでない場合の処理
         #
-		# sstkszが省略されている場合
+        # sstkszが省略されている場合
         if !params.has_key?(:sstksz)
-          error_api(params, "sstksz must be specified in %apiname of %tskid")
+          error_sapi(nil, params, "sstksz must be specified", :tskid)
+        else
+          # sstkszがターゲット定義の最小値（TARGET_MIN_SSTKSZ，未定義の
+          # 場合は1）よりも小さい場合（E_PAR）［NGKI1044］
+          checkMinSystemStksz(params[:sstksz], params)
+
+          # sstkszがターゲット定義の制約に合致しない場合（E_PAR）［NGKI1065］
+          if (params[:sstksz] & ($CHECK_SSTKSZ_ALIGN - 1)) != 0
+            error_wrong_id("E_PAR", params, :sstksz, :tskid, "not aligned")
+          end
+
+          # システムスタック領域の設定［NGKI1043］
+          params[:tinib_sstksz] = params[:sstksz]
+          params[:tinib_sstk] = "(void *)(#{params[:sstk]})"
         end
-
-        # sstkszがターゲット定義の最小値（TARGET_MIN_SSTKSZ，未定義の
-        # 場合は1）よりも小さい場合（E_PAR）［NGKI1044］
-        checkMinSystemStksz(params[:sstksz], params)
-
-        # sstkszがターゲット定義の制約に合致しない場合（E_PAR）［NGKI1065］
-        if (params[:sstksz] & ($CHECK_SSTKSZ_ALIGN - 1)) != 0
-          error_wrong_id("E_PAR", params, :sstksz, :tskid, "not aligned")
-        end
-
-        # システムスタック領域の設定［NGKI1043］
-        params[:tinib_sstksz] = params[:sstksz]
-        params[:tinib_sstk] = "(void *)(#{params[:sstk]})"
       end
 
       #
@@ -210,6 +205,8 @@ class TaskObject < KernelObject
         if $TOPPERS_ML_MANUAL
           error_ercd("E_PAR", params, "%%stk must not be null " \
 						"under manual memory layout in %apiname of %tskid")
+          # 以降のエラーの抑止
+          return
         end
 
         # ユーザスタック領域の確保［NGKI1049］［NGKI1041］
@@ -218,6 +215,12 @@ class TaskObject < KernelObject
         params[:tinib_ustksz] = \
 					AllocUserStack(ustkName, params[:stksz], ustkSecname)
         params[:tinib_ustk] = ustkName
+
+        # ustkSecnameがATT_SECで登録されている場合（E_PAR）［NGKI5129］
+        if $secnameList.has_key?(ustkSecname)
+          error_ercd("E_PAR", $cfgData[:ATT_SEC][$secnameList[ustkSecname]], \
+						"section `%secname' cannot be attached with %apiname")
+        end
       else
         #
         #  stkがNULLでないの場合の処理
@@ -247,7 +250,7 @@ class TaskObject < KernelObject
       params2[:domain] = params[:domain]
       if params[:stk] == "NULL" || params[:stk] == 0
         params2[:linker] = true
-        params2[:memreg] = $standardMemreg[params[:domain]][:stdram]
+        params2[:memreg] = MemregUserStack(params)
         params2[:secname] = ustkSecname
         params2[:stkorder] = params[:tskid]
       else
@@ -288,7 +291,7 @@ class TaskObject < KernelObject
 						"#{params[:tinib_ustksz]}, #{params[:tinib_ustk]}"
     end
     return("(#{$domData[params[:domain]][:domid]}), " \
-			"(#{params[:tskatr]}), (intptr_t)(#{params[:exinf]}), " \
+			"(#{params[:tskatr]}), (EXINF)(#{params[:exinf]}), " \
 			"(TASK)(#{params[:task]}), INT_PRIORITY(#{params[:itskpri]}), " \
 			"#{tskinictxb}, #{GenerateAcvct(params)}")
   end

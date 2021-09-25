@@ -4,7 +4,7 @@
 #       Toyohashi Open Platform for Embedded Real-Time Systems/
 #       High Reliable system Profile Kernel
 # 
-#   Copyright (C) 2016-2019 by Embedded and Real-Time Systems Laboratory
+#   Copyright (C) 2016-2020 by Embedded and Real-Time Systems Laboratory
 #               Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #   上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,7 +36,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 # 
-#   $Id: memory_prep.trb 730 2019-06-20 07:37:01Z ertl-hiro $
+#   $Id: memory_prep.trb 987 2020-07-22 13:14:22Z ertl-hiro $
 # 
 
 #
@@ -50,7 +50,7 @@
 #
 $regnameList = {}
 $cfgData[:ATT_REG].each do |key, params|
-  # 手動メモリ配置の場合（E_NOSPT）［NGKI3909］
+  # 手動メモリ配置の場合［NGKI3909］
   if $TOPPERS_ML_MANUAL
     warning_api(params, "%apiname is not supported under manual memory layout")
     next
@@ -114,6 +114,8 @@ end
 #									 ジョン番号
 # $standardMemreg[domain][:stdsram]：標準ショートRAMリージョンのメモリリー
 #									 ジョン番号
+# $standardMemreg[domain][:stdstk]：標準スタックリージョンのメモリリージョ
+#									ン番号
 #
 $globalVars.push("standardMemreg")
 $standardMemreg = {}
@@ -121,7 +123,7 @@ $cfgData[:DEF_SRG].each do |_, params|
   # 保護ドメインの囲みの中に記述されていない場合は無所属とする
   params[:domain] ||= $TDOM_NONE
 
-  # 手動メモリ配置の場合（E_NOSPT）［NGKI3910］
+  # 手動メモリ配置の場合［NGKI3910］
   if $TOPPERS_ML_MANUAL
     warning_api(params, "%apiname is not supported under manual memory layout")
     next
@@ -138,60 +140,87 @@ $cfgData[:DEF_SRG].each do |_, params|
 
   # stdromに指定したメモリリージョンが未登録の場合（E_OBJ）［NGKI3264］
   stdrom = params[:stdrom]
-  if $regnameList.has_key?(stdrom)
-    stdMemreg[:stdrom] = $regnameList[stdrom]
-  else
+  if !$regnameList.has_key?(stdrom)
     error_ercd("E_OBJ", params, "illegal region name `#{stdrom}' in %apiname")
+  else
+    stdMemreg[:stdrom] = $regnameList[stdrom]
   end
 
   # stdramに指定したメモリリージョンが未登録の場合（E_OBJ）［NGKI3264］
   stdram = params[:stdram]
-  if $regnameList.has_key?(stdram)
-    stdMemreg[:stdram] = $regnameList[stdram]
-  else
+  if !$regnameList.has_key?(stdram)
     error_ercd("E_OBJ", params, "illegal region name `#{stdram}' in %apiname")
-  end
+  else
+    stdMemreg[:stdram] = $regnameList[stdram]
 
-  # stdramに指定したメモリリージョンがTA_NOWRITE属性の場合（E_OBJ）［NGKI3270］
-  if ($cfgData[:ATT_REG][$regnameList[stdram]][:regatr] & $TA_NOWRITE) != 0
-    error_ercd("E_OBJ", params, "standard RAM region must not have " \
+    # stdramに指定したメモリリージョンがTA_NOWRITE属性の場合（E_OBJ）
+    # ［NGKI3270］
+    if ($cfgData[:ATT_REG][$regnameList[stdram]][:regatr] & $TA_NOWRITE) != 0
+      error_ercd("E_OBJ", params, "standard RAM region must not have " \
 										"TA_NOWRITE attribute in %apiname")
+    end
   end
 
   # stdsromに指定したメモリリージョンが未登録の場合（E_OBJ）［NGKI3264］
   if params.has_key?(:stdsrom)
     stdsrom = params[:stdsrom]
-    if $regnameList.has_key?(stdsrom)
-      stdMemreg[:stdsrom] = $regnameList[stdsrom]
-    else
+    if !$regnameList.has_key?(stdsrom)
       error_ercd("E_OBJ", params, \
 							"illegal region name `#{stdsrom}' in %apiname")
+    else
+      stdMemreg[:stdsrom] = $regnameList[stdsrom]
     end
   else
     # 標準ショートROMリージョン名の記述を省略した場合［NGKI3988］
-    stdsrom = stdrom
-    stdMemreg[:stdsrom] = stdMemreg[:stdrom]
+    if stdMemreg.has_key?(:stdrom)
+      stdMemreg[:stdsrom] = stdMemreg[:stdrom]
+    end
   end
 
   # stdsramに指定したメモリリージョンが未登録の場合（E_OBJ）［NGKI3264］
   if params.has_key?(:stdsram)
     stdsram = params[:stdsram]
-    if $regnameList.has_key?(stdsram)
-      stdMemreg[:stdsram] = $regnameList[stdsram]
-    else
+    if !$regnameList.has_key?(stdsram)
       error_ercd("E_OBJ", params, \
 							"illegal region name `#{stdsram}' in %apiname")
+    else
+      stdMemreg[:stdsram] = $regnameList[stdsram]
+
+      # stdsramに指定したメモリリージョンがTA_NOWRITE属性の場合（E_OBJ）
+      # ［NGKI3270］
+      if ($cfgData[:ATT_REG][$regnameList[stdsram]][:regatr] & $TA_NOWRITE) != 0
+        error_ercd("E_OBJ", params, "standard short RAM region must not have " \
+										"TA_NOWRITE attribute in %apiname")
+      end
     end
   else
     # 標準ショートRAMリージョン名の記述を省略した場合［NGKI3989］
-    stdsram = stdram
-    stdMemreg[:stdsram] = stdMemreg[:stdram]
+    if stdMemreg.has_key?(:stdram)
+      stdMemreg[:stdsram] = stdMemreg[:stdram]
+    end
   end
 
-  # stdsramに指定したメモリリージョンがTA_NOWRITE属性の場合（E_OBJ）［NGKI3270］
-  if ($cfgData[:ATT_REG][$regnameList[stdsram]][:regatr] & $TA_NOWRITE) != 0
-    error_ercd("E_OBJ", params, "standard short RAM region must not have " \
+  # stdstkに指定したメモリリージョンが未登録の場合（E_OBJ）［NGKI3264］
+  if params.has_key?(:stdstk)
+    stdstk = params[:stdstk]
+    if !$regnameList.has_key?(stdstk)
+      error_ercd("E_OBJ", params, \
+							"illegal region name `#{stdstk}' in %apiname")
+    else
+      stdMemreg[:stdstk] = $regnameList[stdstk]
+
+      # stdstkに指定したメモリリージョンがTA_NOWRITE属性の場合（E_OBJ）
+      # ［NGKI3270］
+      if ($cfgData[:ATT_REG][$regnameList[stdstk]][:regatr] & $TA_NOWRITE) != 0
+        error_ercd("E_OBJ", params, "standard stack region must not have " \
 										"TA_NOWRITE attribute in %apiname")
+      end
+    end
+  else
+    # 標準スタックリージョン名の記述を省略した場合［NGKI5205］
+    if stdMemreg.has_key?(:stdram)
+      stdMemreg[:stdstk] = stdMemreg[:stdram]
+    end
   end
 end
 
@@ -303,7 +332,7 @@ $cfgData[:ATT_MOD].sort.each do |key, params|
     # 保護ドメインの囲みの中に記述されていない場合は無所属とする
     params[:domain] ||= $TDOM_NONE
 
-    # 手動メモリ配置の場合（E_NOSPT）［NGKI3913］［NGKI2861］
+    # 手動メモリ配置の場合［NGKI2861］
     if $TOPPERS_ML_MANUAL
       warning_api(params,
 					"%apiname is not supported under manual memory layout")
@@ -373,24 +402,24 @@ end
 #
 #  ATT_SECで登録されたセクションに関するエラーチェックと情報の生成
 #
-# secnameList：登録済みのセクション名のリスト（ここでのみ使用）
+# $secnameList：登録済みのセクション名のリスト
 #
-secnameList = {}
+$secnameList = {}
 $cfgData[:ATT_SEC].each do |key, params|
-  # 手動メモリ配置の場合（E_NOSPT）［NGKI3911］
+  # 手動メモリ配置の場合［NGKI3911］
   if $TOPPERS_ML_MANUAL
     warning_api(params, "%apiname is not supported under manual memory layout")
     next
   end
 
-  # secnameが登録できないセクションの場合（E_PAR）［NGKI2834］［NGKI2836］
+  # secnameが登録できないセクションの場合（E_PAR）［NGKI2834］［NGKI5129］
   if $standardSecnameList.include?(params[:secname])
-    error_ercd("E_PAR", params, "default section `%secname' " \
-								"cannot be attached with %apiname")
+    error_ercd("E_PAR", params,
+						"section `%secname' cannot be attached with %apiname")
   end
 
   # secnameが登録済みの場合（E_OBJ）［NGKI2821］
-  if secnameList.has_key?(params[:secname])
+  if $secnameList.has_key?(params[:secname])
     error_ercd("E_OBJ", params, "section `%secname' in %apiname is duplicated")
   end
 
@@ -409,16 +438,6 @@ $cfgData[:ATT_SEC].each do |key, params|
   # 保護ドメインの囲みの中に記述されていない場合は無所属とする
   params[:domain] ||= $TDOM_NONE
 
-  # mematrが無効の場合（E_RSATR）［NGKI2820］［NGKI2775］［NGKI2794］
-  #（TA_NOWRITE，TA_NOREAD，TA_EXEC，TA_MEMINI，TA_MEMZERO，TA_SDATA，
-  #　TA_UNCACHE，TA_IODEV，TARGET_MEMATR以外のビットがセットされてい
-  #　る場合）
-  if (params[:mematr] & ~($TA_NOWRITE|$TA_NOREAD|$TA_EXEC|$TA_MEMINI \
-						   |$TA_MEMZERO|$TA_SDATA|$TA_UNCACHE \
-						   |$TA_IODEV|$TARGET_MEMATR)) != 0
-    error_illegal("E_RSATR", params, :mematr)
-  end
-
   # メモリリージョンが記述されていない場合［NGKI5150］
   if !params.has_key?(:regname)
     if (params[:mematr] & $TA_SDATA) == 0
@@ -436,18 +455,27 @@ $cfgData[:ATT_SEC].each do |key, params|
     end
   end
 
+  # mematrが無効の場合（E_RSATR）［NGKI2820］［NGKI2775］［NGKI2794］
+  # （TA_NOWRITE，TA_NOREAD，TA_EXEC，TA_MEMINI，TA_MEMZERO，TA_SDATA，
+  # TA_UNCACHE，TA_IODEV，TARGET_MEMATR以外のビットがセットされている
+  # 場合）
+  if (params[:mematr] & ~($TA_NOWRITE|$TA_NOREAD|$TA_EXEC|$TA_MEMINI \
+							|$TA_MEMZERO|$TA_SDATA|$TA_UNCACHE \
+							|$TA_IODEV|$TARGET_MEMATR)) != 0
+    error_illegal("E_RSATR", params, :mematr)
+
   # メモリリージョン属性にTA_NOWRITEが設定されている場合で，
   # mematrにTA_NOWRITEを指定していない場合（E_RSATR）［NGKI5058］
   # mematrにTA_MEMINIかTA_MEMZEROを指定した場合（E_RSATR）［NGKI5059］
-  if ($cfgData[:ATT_REG][memreg][:regatr] & $TA_NOWRITE) != 0 \
+  elsif ($cfgData[:ATT_REG][memreg][:regatr] & $TA_NOWRITE) != 0 \
 	 && ((params[:mematr] & $TA_NOWRITE) == 0 \
-		 || (params[:mematr] & ($TA_MEMINI|$TA_MEMZERO)) != 0)
-    error_illegal("E_RSATR", params, :mematr)
-  end
+			|| (params[:mematr] & ($TA_MEMINI|$TA_MEMZERO)) != 0)
+    error_ercd("E_RSATR", params, "illegal %%mematr for a memory region " \
+									"with TA_NOWRITE attribute in %apiname")
 
   # mematrにTA_MEMINIとTA_MEMZEROの両方を指定した場合（TA_RSATR）
   # ［NGKI2828］
-  if (params[:mematr] & ($TA_MEMINI|$TA_MEMZERO)) == ($TA_MEMINI|$TA_MEMZERO)
+  elsif (params[:mematr] & ($TA_MEMINI|$TA_MEMZERO)) == ($TA_MEMINI|$TA_MEMZERO)
     error_illegal("E_RSATR", params, :mematr)
   end
 
@@ -472,8 +500,8 @@ $cfgData[:ATT_SEC].each do |key, params|
   params2[:_line_] = params[:_line_]
   $memObj[$lastMOKey += 1] = params2
 
-  # secnameListに登録
-  secnameList[params[:secname]] = key
+  # $secnameListに登録
+  $secnameList[params[:secname]] = key
 end
 
 #
@@ -504,7 +532,8 @@ $cfgData[:ATT_MEM].each do |key, params|
     error_wrong("E_PAR", params, :size, "zero")
   end
 
-  # ターゲット依存のエラーチェック
+  # ターゲット依存のエラーチェック［NGKI2879］［NGKI2880］［NGKI2899］
+  # ［NGKI2900］
   if defined? TargetCheckMemory()
     TargetCheckMemory(params)
   end

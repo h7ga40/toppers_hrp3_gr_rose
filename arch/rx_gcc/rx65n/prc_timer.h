@@ -74,12 +74,12 @@
 /*
  *  高分解能タイマの起動処理
  */
-extern void	target_hrt_initialize(intptr_t exinf);
+extern void	target_hrt_initialize(EXINF exinf);
 
 /*
  *  高分解能タイマの停止処理
  */
-extern void	target_hrt_terminate(intptr_t exinf);
+extern void	target_hrt_terminate(EXINF exinf);
 
 /*
  *  高分解能タイマの現在のカウント値の読出し
@@ -121,12 +121,12 @@ extern void	target_hrt_handler(void);
 /*
  *  タイムウィンドウタイマの初期化処理
  */
-extern void target_twdtimer_initialize(intptr_t exinf);
+extern void target_twdtimer_initialize(EXINF exinf);
 
 /*
  *  タイムウィンドウタイマの停止処理
  */
-extern void target_twdtimer_terminate(intptr_t exinf);
+extern void target_twdtimer_terminate(EXINF exinf);
 
 /*
  *  タイムウィンドウタイマの動作開始

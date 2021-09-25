@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: wait.c 520 2018-11-01 12:41:13Z ertl-hiro $
+ *  $Id: wait.c 924 2019-12-18 20:03:13Z ertl-hiro $
  */
 
 /*
@@ -119,7 +119,12 @@ wait_tmout(TCB *p_tcb)
 	p_tcb->p_winfo->wercd = E_TMOUT;
 	make_non_wait(p_tcb);
 	if (p_runtsk != p_schedtsk) {
-		request_dispatch_retint();
+		if (!sense_context()) {
+			assert(!dspflg);
+		}
+		else { 
+			request_dispatch_retint();
+		}
 	}
 
 	/*
@@ -139,7 +144,12 @@ wait_tmout_ok(TCB *p_tcb)
 	p_tcb->p_winfo->wercd = E_OK;
 	make_non_wait(p_tcb);
 	if (p_runtsk != p_schedtsk) {
-		request_dispatch_retint();
+		if (!sense_context()) {
+			assert(!dspflg);
+		}
+		else { 
+			request_dispatch_retint();
+		}
 	}
 
 	/*

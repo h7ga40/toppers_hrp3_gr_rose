@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2015-2019 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2015-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,11 +34,11 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_twdnfy.c 694 2019-03-24 14:40:29Z ertl-hiro $
+ *  $Id: test_twdnfy1.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /* 
- *		タイムウィンドウ通知に関するテスト
+ *		タイムウィンドウ通知に関するテスト(1)
  *
  * 【テストの目的】
  *
@@ -103,34 +103,36 @@
  *	// 3回目のシステム周期（システム動作モード：SOM2）
  *	// タイムウィンドウ for DOM1
  *	// タイムウィンドウ通知が実行される（TASK13を起動）
+ *	== TASK13-1 ==
+ *		WAIT_RESET(task13_flag)				// TASK13が先に実行されることの対策
  *	// ここでタイムウィンドウを使い切る
  *	// タイムウィンドウ for DOM2
  *	// タイムウィンドウ通知が実行される（TASK2を起床）
  *	== TASK2 ==
  *	7:	ref_tsk(TASK13, &rtsk)
  *		assert(rtsk.tskstat == TTS_RDY)
+ *		SET(task13_flag)
  *	8:	slp_tsk()
  *	// タイムウィンドウ for DOM1
  *	== TASK13-1 ==
- *		DO(delay_nsec(TEST_TIME_TD))		// TASK13が先に実行されることの対策
  *	9:	ext_tsk()
  *	// アイドルウィンドウ
  *	// 4回目のシステム周期（システム動作モード：SOM2）
  *	// タイムウィンドウ for DOM1
  *	// タイムウィンドウ通知が実行される（TASK13を起動）
+ *	// CYC11が実行される（TASK12を起動）
+ *	== TASK13-2 ==
+ *		WAIT_RESET(task13_flag)				// TASK13が先に実行されることの対策
  *	// ここでタイムウィンドウを使い切る
  *	// タイムウィンドウ for DOM2
  *	// タイムウィンドウ通知が実行される（TASK2を起床）
  *	== TASK2 ==
  *	10:	ref_tsk(TASK13, &rtsk)
  *		assert(rtsk.tskstat == TTS_RDY)
- *		ref_tsk(TASK12, &rtsk)
- *		assert(rtsk.tskstat == TTS_DMT)
+ *		SET(task13_flag)
  *	11:	slp_tsk()
  *	// タイムウィンドウ for DOM1
- *	// CYC11が実行される（TASK12を起動）
  *	== TASK13-2 ==
- *		DO(delay_nsec(TEST_TIME_TD))		// TASK13が先に実行されることの対策
  *	12:	ext_tsk()
  *	== TASK12-2 ==
  *	13:	ext_tsk()
@@ -138,7 +140,10 @@
  *	// タイムウィンドウ for DOM1
  *	// タイムウィンドウ通知が実行される（TASK13を起動）
  *	== TASK13-3 ==
- *		DO(delay_nsec(TEST_TIME_TD))		// TASK13が先に実行されることの対策
+ *		WAIT_RESET(task13_flag)				// TASK13が先に実行されることの対策
+ *	// ここでタイムウィンドウを使い切る
+ *	// タイムウィンドウ for DOM2
+ *	// タイムウィンドウ通知が実行される（TASK2を起床）
  *	== TASK2 ==
  *	14:	END
  */
@@ -148,36 +153,16 @@
 #include <t_syslog.h>
 #include "syssvc/test_svc.h"
 #include "kernel_cfg.h"
-#include "test_twdnfy.h"
+#include "test_common.h"
 
-/*
- *  タイムウィンドウ切換えの遅延より長い時間（nsec単位）
- *
- *  TEST_TIME_CP（μsec単位）の100分の1の時間に設定する．
- */
-#ifndef TEST_TIME_TD
-#define TEST_TIME_TD		(TEST_TIME_CP * 1000U / 100U)
-#endif /* TEST_TIME_TD */
-
-ER_UINT extsvc1_routine(intptr_t nsec, intptr_t par2, intptr_t par3,
-									intptr_t par4, intptr_t par5, ID cdmid)
-{
-	sil_dly_nse(nsec);
-	return(E_OK);
-}
-
-static void
-delay_nsec(uint_t nsec)
-{
-	(void) cal_svc(TFN_EXTSVC1, nsec, 0, 0, 0, 0);
-}
+volatile bool_t	task13_flag = false;
 
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 static uint_t	task11_count = 0;
 
 void
-task11(intptr_t exinf)
+task11(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -189,25 +174,25 @@ task11(intptr_t exinf)
 		ercd = ext_tsk();
 		check_ercd(ercd, E_OK);
 
-		check_point(0);
+		check_assert(false);
 
 	case 2:
 		check_point(4);
 		ercd = ext_tsk();
 		check_ercd(ercd, E_OK);
 
-		check_point(0);
+		check_assert(false);
 
 	default:
-		check_point(0);
+		check_assert(false);
 	}
-	check_point(0);
+	check_assert(false);
 }
 
 static uint_t	task12_count = 0;
 
 void
-task12(intptr_t exinf)
+task12(EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -217,60 +202,60 @@ task12(intptr_t exinf)
 		ercd = ext_tsk();
 		check_ercd(ercd, E_OK);
 
-		check_point(0);
+		check_assert(false);
 
 	case 2:
 		check_point(13);
 		ercd = ext_tsk();
 		check_ercd(ercd, E_OK);
 
-		check_point(0);
+		check_assert(false);
 
 	default:
-		check_point(0);
+		check_assert(false);
 	}
-	check_point(0);
+	check_assert(false);
 }
 
 static uint_t	task13_count = 0;
 
 void
-task13(intptr_t exinf)
+task13(EXINF exinf)
 {
 	ER_UINT	ercd;
 
 	switch (++task13_count) {
 	case 1:
-		delay_nsec(TEST_TIME_TD);
+		WAIT_RESET(task13_flag);
 
 		check_point(9);
 		ercd = ext_tsk();
 		check_ercd(ercd, E_OK);
 
-		check_point(0);
+		check_assert(false);
 
 	case 2:
-		delay_nsec(TEST_TIME_TD);
+		WAIT_RESET(task13_flag);
 
 		check_point(12);
 		ercd = ext_tsk();
 		check_ercd(ercd, E_OK);
 
-		check_point(0);
+		check_assert(false);
 
 	case 3:
-		delay_nsec(TEST_TIME_TD);
+		WAIT_RESET(task13_flag);
 
-		check_point(0);
+		check_assert(false);
 
 	default:
-		check_point(0);
+		check_assert(false);
 	}
-	check_point(0);
+	check_assert(false);
 }
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 	T_RTSK	rtsk;
@@ -296,6 +281,8 @@ task2(intptr_t exinf)
 
 	check_assert(rtsk.tskstat == TTS_RDY);
 
+	SET(task13_flag);
+
 	check_point(8);
 	ercd = slp_tsk();
 	check_ercd(ercd, E_OK);
@@ -306,15 +293,12 @@ task2(intptr_t exinf)
 
 	check_assert(rtsk.tskstat == TTS_RDY);
 
-	ercd = ref_tsk(TASK12, &rtsk);
-	check_ercd(ercd, E_OK);
-
-	check_assert(rtsk.tskstat == TTS_DMT);
+	SET(task13_flag);
 
 	check_point(11);
 	ercd = slp_tsk();
 	check_ercd(ercd, E_OK);
 
 	check_finish(14);
-	check_point(0);
+	check_assert(false);
 }

@@ -101,7 +101,7 @@ static uint_t	syslog_lowmask_not;		/* 低レベル出力すべき重要度（反
  *  システムログ機能の初期化
  */
 void
-syslog_initialize(intptr_t exinf)
+syslog_initialize(EXINF exinf)
 {
 	syslog_count = 0U;
 	syslog_head = 0U;

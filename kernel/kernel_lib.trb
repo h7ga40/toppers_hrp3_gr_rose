@@ -36,7 +36,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 #
-#   $Id: kernel_lib.trb 727 2019-06-08 05:53:25Z ertl-hiro $
+#   $Id: kernel_lib.trb 903 2019-12-06 15:50:07Z ertl-hiro $
 #
 
 #
@@ -68,15 +68,7 @@ def CopyLma
       startData = SYMBOL(lma[:START_DATA])
       endData = SYMBOL(lma[:END_DATA])
       startIdata = SYMBOL(lma[:START_IDATA])
-      if startData.nil?
-        error_exit("symbol `lma[:START_DATA]' not found")
-      elsif endData.nil?
-        error_exit("symbol `lma[:END_DATA]' not found")
-      elsif startIdata.nil?
-        error_exit("symbol `lma[:START_IDATA]' not found")
-      else
-        BCOPY(startIdata, startData, endData - startData)
-      end
+      BCOPY(startIdata, startData, endData - startData)
     end
   end
 end
@@ -134,6 +126,21 @@ def GenerateDominib(genFile)
   # 保護ドメインID番号の最大値
   genFile.add2("const ID _kernel_tmax_domid = " \
 								"(TMIN_DOMID + TNUM_DOMID - 1);")
+
+  # タイムイベントヒープ領域の宣言
+  if $USE_LATERPASS_DOMINIB
+    genFile.add("extern TMEVTN _kernel_tmevt_heap_kernel[];")
+    if $cfgData[:DEF_SCY].size > 0
+      $udomainList.each do |domain|
+        params = $domData[domain]
+        if $schedcbList.has_key?(domain)
+          genFile.add("extern TMEVTN _kernel_tmevt_heap_#{params[:domid]}[];")
+        end
+      end
+      genFile.add("extern TMEVTN _kernel_tmevt_heap_idle[];")
+    end
+    genFile.add
+  end
 
   # 保護ドメイン初期化コンテキストブロックのための宣言
   if defined? PrepareDominictxb()
@@ -212,12 +219,17 @@ def SortMemtopList
         # ユーザスタック領域の共有
         params[:merged] = true
       else
+		# 登録しようとしたメモリオブジェクトが，登録済みのメモリオブジェ
+		# クトとメモリ領域が重なる場合［NGKI2882］［NGKI2902］
         if params[:type] == :ATTMEM
           error_ercd("E_OBJ", params, "memory object registered " \
 						"with %apiname overlaps with another memory object")
         elsif prevParams[:type] == :ATTMEM
           error_ercd("E_OBJ", prevParams, "memory object registered " \
 						"with %apiname overlaps with another memory object")
+
+		# stkとstkszで指定したスタック領域が，登録済みのメモリオブジェ
+		# クトとメモリ領域が重なる場合［NGKI1060］
         elsif params[:type] == :USTACK
           error_ercd("E_OBJ", params, "user stack area registered " \
 						"with %apiname overlaps with another memory object")
@@ -233,7 +245,7 @@ def SortMemtopList
     params[:MAEND_MLABEL] = params[:MLABEL]
     prevParams = params
   end
-  if prevParams[:maendaddr] == $pointerLimit
+  if !prevParams.nil? && prevParams[:maendaddr] == $pointerLimit
     prevParams[:suppressend] = true
   end
 end

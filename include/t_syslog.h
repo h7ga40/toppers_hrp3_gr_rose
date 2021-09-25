@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -85,15 +85,19 @@ extern "C" {
 
 #define LOG_TYPE_INH		UINT_C(0x11)	/* 割込みハンドラ */
 #define LOG_TYPE_ISR		UINT_C(0x12)	/* 割込みサービスルーチン */
-#define LOG_TYPE_CYC		UINT_C(0x13)	/* 周期ハンドラ */
-#define LOG_TYPE_ALM		UINT_C(0x14)	/* アラームハンドラ */
+#define LOG_TYPE_CYC		UINT_C(0x13)	/* 周期通知 */
+#define LOG_TYPE_ALM		UINT_C(0x14)	/* アラーム通知 */
 #define LOG_TYPE_OVR		UINT_C(0x15)	/* オーバランハンドラ */
 #define LOG_TYPE_EXC		UINT_C(0x16)	/* CPU例外ハンドラ */
 #define LOG_TYPE_TSKSTAT	UINT_C(0x21)	/* タスク状態変化 */
 #define LOG_TYPE_DSP		UINT_C(0x31)	/* ディスパッチャ */
 #define LOG_TYPE_SVC		UINT_C(0x41)	/* サービスコール */
+#define LOG_TYPE_EXTSVC		UINT_C(0x42)	/* 拡張サービスコール */
+#define LOG_TYPE_SCYC		UINT_C(0x51)	/* システム周期 */
+#define LOG_TYPE_TWD		UINT_C(0x52)	/* タイムウィンドウ */
 
 #define LOG_ENTER			UINT_C(0x00)	/* 入口／開始 */
+#define LOG_START			UINT_C(0x00)	/* 開始 */
 #define LOG_LEAVE			UINT_C(0x80)	/* 出口／終了 */
 
 /*

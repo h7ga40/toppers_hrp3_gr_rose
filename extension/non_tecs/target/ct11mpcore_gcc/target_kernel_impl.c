@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      High Reliable system Profile Kernel
  * 
- *  Copyright (C) 2007-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2007-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_kernel_impl.c 737 2019-07-09 10:26:01Z ertl-hiro $
+ *  $Id: target_kernel_impl.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /*
@@ -58,7 +58,7 @@ extern void	tPutLogSIOPort_initialize(void);
 
 #else /* TOPPERS_OMIT_TECS */
 
-extern void	sio_initialize(intptr_t exinf);
+extern void	sio_initialize(EXINF exinf);
 extern void	target_fput_initialize(void);
 
 #endif /* TOPPERS_OMIT_TECS */
@@ -166,7 +166,9 @@ ct11mpcore_uart_fput(char c)
 	/*
 	 *  送信できるまでポーリング
 	 */
-	while (!(uart_pl011_snd_chr(p_siopcb_target_fput, c))) ;
+	while (!(uart_pl011_snd_chr(p_siopcb_target_fput, c))) {
+		sil_dly_nse(100);
+	}
 }
 
 /*

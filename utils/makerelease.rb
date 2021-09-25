@@ -36,7 +36,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 # 
-#  $Id: makerelease.rb 696 2019-03-25 01:31:28Z ertl-hiro $
+#  $Id: makerelease.rb 149 2019-03-29 17:39:56Z ertl-honda $
 # 
 
 require "optparse"
@@ -187,6 +187,15 @@ fileListStr = $fileList.join(" ")
 command = "tar cvfz RELEASE/#{archiveName} -C .. #{fileListStr}";
 system(command)
 puts("== RELEASE/#{archiveName} is generated. ==")
+command = "tar xvfz RELEASE/#{archiveName} -C RELEASE";
+system(command)
+archive_zipname = $package + "-" + $version + ".zip";
+command = "cd RELEASE; zip -r #{archive_zipname} #{File.basename(cwd)}";
+system(command)
+command = "rm -rf RELEASE/#{File.basename(cwd)}";
+system(command)
+
+
 
 #
 #  アーカイブファイルの展開と削除

@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_prbstr.h 667 2019-02-13 07:42:11Z ertl-hiro $
+ *  $Id: test_prbstr.h 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /* 
@@ -78,7 +78,7 @@
  */
 #ifndef TOPPERS_MACRO_ONLY
 
-extern void	task1(intptr_t exinf);
+extern void	task1(EXINF exinf);
 extern ER_UINT extsvc1_routine(intptr_t par1, intptr_t par2, intptr_t par3,
 								intptr_t par4, intptr_t par5, ID cdmid);
 

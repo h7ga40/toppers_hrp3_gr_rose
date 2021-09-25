@@ -77,12 +77,12 @@ extern ER	_logtask_flush(uint_t count) throw();
 /*
  *  システムログタスクの本体
  */
-extern void	logtask_main(intptr_t exinf) throw();
+extern void	logtask_main(EXINF exinf) throw();
 
 /*
  *  システムログタスクの終了処理
  */
-extern void	logtask_terminate(intptr_t exinf) throw();
+extern void	logtask_terminate(EXINF exinf) throw();
 
 /*
  *  システムログタスクのサービスコールを呼び出すための定義

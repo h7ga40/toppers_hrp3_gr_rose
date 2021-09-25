@@ -36,7 +36,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 #
-#   $Id: domain_prep.trb 727 2019-06-08 05:53:25Z ertl-hiro $
+#   $Id: domain_prep.trb 844 2019-11-23 15:48:14Z ertl-hiro $
 #
 
 #
@@ -87,13 +87,10 @@ $cfgData[:ACV_DOM].each do |key, params|
   # 保護ドメインの囲みの中に記述されていない場合は無所属とする
   params[:domain] ||= $TDOM_NONE
 
-  # 保護ドメイン中に複数のACV_DOMがある場合（E_OBJ）［NGKI3761］
-  $cfgData[:ACV_DOM].each do |key2, params2|
-    break if key2 == key
-    if params2[:domain] == params[:domain]
-      error_ercd("E_OBJ", params, \
+  # 保護ドメインのアクセス許可ベクタが設定済みの場合（E_OBJ）［NGKI3761］
+  if $domData[params[:domain]].has_key?(:acptn1)
+    error_ercd("E_OBJ", params, \
 						"%apiname is duplicated in a protection domain")
-    end
   end
 
   # ACV_DOMのデータを$domDataに取り込む
@@ -118,25 +115,22 @@ end
 #  システム周期の設定（DEF_SCY）
 #
 # DEF_SCYに関するエラーチェック
-if $cfgData[:DEF_SCY].size > 0
-  # 静的API「DEF_SCY」が複数ある場合（E_OBJ）［NGKI5016］
-  if $cfgData[:DEF_SCY].size > 1
-    error("E_OBJ: too many DEF_SCY")
+$cfgData[:DEF_SCY].each_with_index do |(_, params), index|
+  # 保護ドメインの囲みの中に記述されている場合（E_RSATR）［NGKI5013］
+  if params.has_key?(:domain)
+    error_ercd("E_RSATR", params, \
+						"%apiname must be outside of protection domains")
   end
 
-  # DEF_SCYがある場合の処理
-  params0 = $cfgData[:DEF_SCY][1]
-
-  # 保護ドメインの囲みの中に記述されている場合（E_RSATR）［NGKI5013］
-  if params0.has_key?(:domain)
-    error_ercd("E_RSATR", params0, \
-						"%apiname must be outside of protection domains")
+  # システム周期が設定済みの場合（E_OBJ）［NGKI5016］
+  if index > 0
+    error_ercd("E_OBJ", params, "%apiname is duplicated")
   end
 
   # scyctimが有効範囲外の場合（E_PAR）［NGKI5015］
   #（0 < scyctim && scyctim <= TMAX_RELTIMでない場合）
-  if !(0 < params0[:scyctim] && params0[:scyctim] <= $TMAX_RELTIM)
-    error_illegal("E_PAR", params0, :scyctim)
+  if !(0 < params[:scyctim] && params[:scyctim] <= $TMAX_RELTIM)
+    error_illegal("E_PAR", params, :scyctim)
   end
 end
 
@@ -144,10 +138,11 @@ end
 #  システム動作モードの生成（CRE_SOM）
 #
 # CRE_SOMに関するエラーチェックと前処理
-$cfgData[:CRE_SOM].each do |_, params|
+$cfgData[:CRE_SOM].each do |key, params|
   # システム周期が設定されていない場合［NGKI5039］
   if $cfgData[:DEF_SCY].size == 0
     warning_api(params, "%apiname is ignored")
+    $cfgData[:CRE_SOM].delete(key)
     next
   end
 
@@ -184,13 +179,14 @@ end
 # $twdList：タイムウィンドウの情報
 #
 # ATT_TWDに関するエラーチェックと前処理
-$globalVars.push("twdList")
+$globalVars.push("schedcbList", "twdList")
 $schedcbList = {}
 $twdList = {}
 $cfgData[:ATT_TWD].each do |key, params|
   # システム周期が設定されていない場合［NGKI5052］
   if $cfgData[:DEF_SCY].size == 0
     warning_api(params, "%apiname is ignored")
+    $cfgData[:ATT_TWD].delete(key)
     next
   end
 

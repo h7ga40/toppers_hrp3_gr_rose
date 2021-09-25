@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2006-2019 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_common.h 786 2019-10-04 06:30:31Z ertl-hiro $
+ *  $Id: test_common.h 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /*
@@ -59,10 +59,10 @@
 /*
  *  拡張SVC番号の定義
  */
-#define TFN_EXTSVC0		50
-#define TFN_EXTSVC1		51
-#define TFN_EXTSVC2		52
-#define TFN_EXTSVC3		53
+#define TFN_EXTSVC0		80
+#define TFN_EXTSVC1		81
+#define TFN_EXTSVC2		82
+#define TFN_EXTSVC3		83
 
 /*
  *  ターゲットに依存する可能性のある定数の定義
@@ -97,6 +97,11 @@
 #define PRCID_SMALL				(TPRC_INI - 1)
 
 /*
+ *  性能評価における標準的な計測回数
+ */
+#define NO_MEASURE	10000U
+
+/*
  *  ポーリング同期用フラグ変数の操作
  */
 #define SET(flag) do {							\
@@ -126,25 +131,26 @@
  */
 #ifndef TOPPERS_MACRO_ONLY
 
-extern void	task1(intptr_t exinf);
-extern void	task2(intptr_t exinf);
-extern void	task3(intptr_t exinf);
-extern void	task4(intptr_t exinf);
-extern void	task5(intptr_t exinf);
-extern void	task6(intptr_t exinf);
-extern void	task7(intptr_t exinf);
-extern void	task8(intptr_t exinf);
-extern void	task9(intptr_t exinf);
-extern void	task10(intptr_t exinf);
-extern void	task11(intptr_t exinf);
-extern void	task12(intptr_t exinf);
-extern void	task51(intptr_t exinf);
-extern void	task52(intptr_t exinf);
+extern void	task1(EXINF exinf);
+extern void	task2(EXINF exinf);
+extern void	task3(EXINF exinf);
+extern void	task4(EXINF exinf);
+extern void	task5(EXINF exinf);
+extern void	task6(EXINF exinf);
+extern void	task7(EXINF exinf);
+extern void	task8(EXINF exinf);
+extern void	task9(EXINF exinf);
+extern void	task10(EXINF exinf);
+extern void	task11(EXINF exinf);
+extern void	task12(EXINF exinf);
+extern void	task13(EXINF exinf);
+extern void	task51(EXINF exinf);
+extern void	task52(EXINF exinf);
 
-extern void	cyclic1_handler(intptr_t exinf);
+extern void	cyclic1_handler(EXINF exinf);
 
-extern void	alarm1_handler(intptr_t exinf);
-extern void	alarm2_handler(intptr_t exinf);
+extern void	alarm1_handler(EXINF exinf);
+extern void	alarm2_handler(EXINF exinf);
 
 extern void	cpuexc1_handler(void *p_excinf);
 extern void	cpuexc2_handler(void *p_excinf);

@@ -277,6 +277,8 @@
 #undef log_inh_leave
 #undef log_exc_enter
 #undef log_exc_leave
+#undef log_extsvc_enter
+#undef log_extsvc_leave
 
 
 #include "target_unrename.h"

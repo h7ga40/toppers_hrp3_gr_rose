@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_tprot3.c 789 2019-10-04 07:00:42Z ertl-hiro $
+ *  $Id: test_tprot3.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /* 
@@ -218,7 +218,7 @@ volatile bool_t	task2_flag;
 volatile bool_t	task3_flag;
 
 void
-cyclic1_handler(intptr_t exinf)
+cyclic1_handler(EXINF exinf)
 {
 	SET(task1_flag);
 	SET(task2_flag);
@@ -251,7 +251,7 @@ check_somid(ID somid)
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 	ID		somid;
@@ -299,7 +299,7 @@ task1(intptr_t exinf)
 }
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 	ID		somid;
@@ -352,7 +352,7 @@ task2(intptr_t exinf)
 }
 
 void
-task3(intptr_t exinf)
+task3(EXINF exinf)
 {
 	ER_UINT	ercd;
 	ID		somid;
@@ -401,7 +401,7 @@ task3(intptr_t exinf)
 }
 
 void
-task4(intptr_t exinf)
+task4(EXINF exinf)
 {
 	ER_UINT	ercd;
 	ID		somid;

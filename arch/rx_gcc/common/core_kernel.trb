@@ -141,7 +141,7 @@ end
 #
 #  システムスタック領域の確保方法
 #
-def AllocSystemStack(stack, size)
+def AllocSystemStack(stack, size, params)
   $kernelCfgC.add("static STK_T #{stack}[COUNT_STK_T(#{size})] " \
 					"__attribute__((section(\".system_stack\"),nocommon));")
   return("ROUND_STK_T(#{size})")

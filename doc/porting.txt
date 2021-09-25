@@ -2,8 +2,8 @@
 		TOPPERS/HRP3カーネル
 		ターゲット依存部 ポーティングガイド
 
-		対応バージョン: Release 3.2.0
-		最終更新: 2019年3月29日
+		対応バージョン: Release 3.3.0
+		最終更新: 2020年11月3日
 
 このドキュメントは，TOPPERS/HRP3カーネルを，未サポートのターゲットシス
 テムにポーティングするために必要となるターゲット依存部の実装方法を説明
@@ -14,7 +14,7 @@
      Toyohashi Open Platform for Embedded Real-Time Systems/
      High Reliable system Profile Kernel
 
- Copyright (C) 2016-2019 by Embedded and Real-Time Systems Laboratory
+ Copyright (C) 2016-2020 by Embedded and Real-Time Systems Laboratory
              Graduate School of Information Science, Nagoya Univ., JAPAN
  
  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -46,7 +46,7 @@
  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  の責任を負わない．
  
- $Id: porting.txt 775 2019-10-02 16:49:21Z ertl-hiro $
+ $Id: porting.txt 1003 2020-11-03 09:20:44Z ertl-hiro $
 ----------------------------------------------------------------------
 
 ○目次
@@ -860,25 +860,29 @@ svc_entry(パラメータリスト, FN fncd)
 		if (非タスクコンテキストからの呼出し) {
 			ソフトウェア割込みによりシステム状態が変化する場合には，
 							ソフトウェア割込み前のシステム状態に戻す
-			LOG_EXTSVC_ENTER(fncd, パラメータリスト, TDOM_KERNEL);
+#ifdef LOG_EXTSVC_ENTER
+			log_extsvc_enter(fncd, パラメータリスト, TDOM_KERNEL);
+#endif /* LOG_EXTSVC_ENTER */
 			ercd = (*(p_svcinib->extsvc))(パラメータリスト, TDOM_KERNEL);
-			LOG_EXTSVC_LEAVE(fncd, ercd);
+#ifdef LOG_EXTSVC_LEAVE
+			log_extsvc_leave(fncd, ercd);
+#endif /* LOG_EXTSVC_LEAVE */
 			ソフトウェア割込みからリターン後のシステム状態が，
 							この時点でのシステム状態になるよう準備する
 		}
 		else {
-			（少なくとも）カーネル管理の割込みを禁止した状態にする
-			if (p_runtsk->svclevel == UINT8_MAX) {
-				ercd = E_SYS;
-				ソフトウェア割込みからリターン後のシステム状態が，
-						ソフトウェア割込み前のシステム状態になるよう準備する
-			}
-			else if (システムスタック領域の残りサイズ < p_svcinib->stksz) {
+			if (システムスタック領域の残りサイズ < p_svcinib->stksz) {
 				ercd = E_NOMEM;
 				ソフトウェア割込みからリターン後のシステム状態が，
 						ソフトウェア割込み前のシステム状態になるよう準備する
 			}
+			else if (p_runtsk->svclevel == UINT8_MAX) {
+				ercd = E_SYS;
+				ソフトウェア割込みからリターン後のシステム状態が，
+						ソフトウェア割込み前のシステム状態になるよう準備する
+			}
 			else {
+				p_runtsk->svclevel++;
 				if (rundom == TACP_KERNEL) {
 					cdmid = TDOM_KERNEL;
 				}
@@ -886,14 +890,16 @@ svc_entry(パラメータリスト, FN fncd)
 					rundom = TACP_KERNEL;
 					cdmid = p_runtsk->p_tinib->domid;
 				}
-				p_runtsk->svclevel++;
 				ソフトウェア割込み前のシステム状態に戻す
-				LOG_EXTSVC_ENTER(fncd, パラメータリスト, cdmid);
+#ifdef LOG_EXTSVC_ENTER
+				log_extsvc_enter(fncd, パラメータリスト, cdmid);
+#endif /* LOG_EXTSVC_ENTER */
 				ercd = (*(p_svcinib->extsvc))(パラメータリスト, cdmid);
-				LOG_EXTSVC_LEAVE(fncd, ercd);
+#ifdef LOG_EXTSVC_LEAVE
+				log_extsvc_leave(fncd, ercd);
+#endif /* LOG_EXTSVC_LEAVE */
 				ソフトウェア割込みからリターン後のシステム状態が，
 							この時点でのシステム状態になるよう準備する
-				（少なくとも）カーネル管理の割込みを禁止した状態にする
 				if (--p_runtsk->svclevel == 0U) {
 					rundom = p_runtsk->p_dominib->domptn;
 				}
@@ -1040,6 +1046,7 @@ CHECK_TARGET_USTACKのデフォルトの定義を用いる場合には，valid_u
 ターゲット定義で，タスクのシステムスタックサイズおよびユーザスタックサ
 イズの最小値を設定する場合には，これらの変数をそれぞれのスタックサイズ
 の最小値に定義する．ASP3カーネルの場合のTARGET_MIN_STKSZは使用しない．
+定義しない場合のデフォルト値は1．
 
 (6-10-3-3) CHECK_SSTKSZ_ALIGN（オプション）
 (6-10-3-4) CHECK_USTKSZ_ALIGN（オプション）
@@ -1087,18 +1094,24 @@ CHECK_STACK_NONNULLは使用しない．
 を用意する．
 
 タイムウィンドウタイマ割込みの割込み優先度は，HRP3カーネルの設計制約上，
-最低優先度とすることを原則とする．
+高分解能タイマ割込みと同じにしなければならない．また，これらの割込みの
+優先度は，低くすることが望ましい．
+
+(6-11-1-1) INTPRI_TIMER		タイマ割込みの割込み優先度
+
+高分解能タイマ割込みとタイムウィンドウタイマ割込みの割込み優先度（両タ
+イマ割込みの優先度は一致していなければならない）をこのマクロに定義する．
 
 6.11.2 タイムウィンドウタイマの操作と割込み処理
 
-(6-11-2-1) void target_twdtimer_initialize(intptr_t exinf)
+(6-11-2-1) void target_twdtimer_initialize(EXINF exinf)
 
 タイムウィンドウタイマの初期化処理を行う．タイマの動作開始は行わない．
 
 この関数は，target_timer.cfg中に記述する静的APIにより，初期化ルーチンと
 してカーネルに登録する．そのため，関数名を変更しても差し支えない．
 
-(6-11-2-2) void target_twdtimer_terminate(intptr_t exinf)
+(6-11-2-2) void target_twdtimer_terminate(EXINF exinf)
 
 タイムウィンドウタイマを停止させ，タイムウィンドウタイマ割込みを発生し
 ないようにする．
@@ -1126,7 +1139,7 @@ CHECK_STACK_NONNULLは使用しない．
 割込みはクリアしない．
 
 (6-11-2-6) void target_twdtimer_handler(void)
-    または void target_twdtimer_isr(intptr_t exinf)
+    または void target_twdtimer_isr(EXINF exinf)
 
 タイムウィンドウタイマ割込みにより起動される割込み処理プログラム．割込
 みハンドラとして実現する場合にはtarget_twdtimer_handler，割込みサービ
@@ -1166,10 +1179,22 @@ target_mem.cfgには，次のような静的APIを含める．
 6.13 トレースログ機能に関する設定
 
 HRP3カーネルで取得できるトレースログは，ASP3カーネルで取得できるものに
-加えて，以下のものがある．
+加えて，以下のログ種別のものがある．
 
-	LOG_SCYC_START	システム周期の開始
-	LOG_TWD_START	タイムウィンドウの開始
+	LOG_TYPE_EXCSVC		拡張サービスコールの入口・出口
+	LOG_TYPE_SCYC		システム周期の開始
+	LOG_TYPE_TWD		タイムウィンドウの開始
+
+この内，拡張サービスコールの入口・出口のトレースログ取得は，ターゲット
+依存部で実装する必要がある．ほとんどのターゲットシステムにおいて，この
+処理はアセンブリ言語で記述されているため，これらのトレースログ取得につ
+いては，下の表の左側に示したトレースログマクロが定義されていれば，表の
+右側に示したC言語関数を呼び出すようにコーディングする．
+
+	トレースログマクロ		トレースログ取得処理
+	-----------------------------------------------
+	LOG_EXTSVC_ENTER		log_extsvc_enter(fncd, パラメータリスト, cdmid)
+	LOG_EXTSVC_LEAVE		log_extsvc_leave(fncd, ercd)
 
 
 ７．コンフィギュレータ設定ファイルのターゲット依存部
@@ -1313,9 +1338,8 @@ target_kernel.trbからkernel.trbをインクルードする前に，次の変�
 (7-2-1-12) PrepareDominictxb(genFile)（オプション）
 
 各保護ドメインのDOMINICTXBの初期化記述で，外部シンボルを参照する場合に，
-そのextern宣言を生成するための関数PrepareDominictxbを定義する．
-PrepareDominictxbには，extern宣言の生成先のファイルがパラメータとして
-渡される．
+そのextern宣言を生成するための関数PrepareDominictxbを定義する．genFile
+には，extern宣言の生成先のファイルが渡される．
 
 USE_LATERPASS_DOMINIBをマクロ定義した場合には，パス2で生成される
 DOMINICTXBは仮のものであるため，PrepareDominictxb，$kernelDominictxb，
@@ -1329,77 +1353,91 @@ USE_DOMINICTXBをマクロ定義した場合，必ず定義しなければなら
 (7-2-1-14) GenerateDominictxb(key, params)（オプション）
 
 ユーザドメインのDOMINICTXBの初期化記述を生成するための関数
-GenerateDominictxbを定義する．GenerateDominictxbには，保護ドメインのID
-番号（数値）とパラメータ情報（ハッシュ）が渡される．USE_DOMINICTXBをマ
-クロ定義した場合には，必ず定義しなければならない．
+GenerateDominictxbを定義する．keyには保護ドメインのID番号（数値）が，
+paramsにはパラメータ情報（ハッシュ）が渡される．USE_DOMINICTXBをマクロ
+定義した場合には，必ず定義しなければならない．
 
 (7-2-1-15) SecnameUserStack(tskid)
 
 コンフィギュレータが割り付けるユーザスタック領域を配置するセクションの
-名前を生成するための関数SecnameUserStackを定義する．SecnameUserStackに
-は，タスクID（数値および名前）が渡される．
+名前を生成するための関数SecnameUserStackを定義する．tskidには，タスク
+ID（数値および名前）が渡される．
 
-(7-2-1-16) AllocUserStack(stack, size, secname)
+(7-2-1-16) MemregUserStack(params)（オプション）
+
+コンフィギュレータが割り付けるユーザスタック領域を配置するメモリリージョ
+ンを決定するための関数MemregUserStackを定義する．paramsには，タスクの
+タスクのパラメータ情報（ハッシュ）が渡されるので，配置先のメモリリージョ
+ン番号を返す．ユーザスタック領域を配置するメモリリージョンをデフォルト
+から変更したい場合のみ定義すればよい．
+
+(7-2-1-17) AllocUserStack(stack, size, secname)
 
 コンフィギュレータが割り付けるユーザスタック領域を確保する記述を生成す
-るための関数AllocUserStackを定義する．AllocUserStackには，割り付けるユー
-ザスタック領域の変数名，丸める前のサイズ，配置するセクションの名前が渡
-されるので，ユーザスタック領域を確保するコードを生成し，大きい方に丸め
-たサイズを表す文字列を返す．
+るための関数AllocUserStackを定義する．stack，size，secnameにはそれぞれ，
+割り付けるユーザスタック領域の変数名，丸める前のサイズ，配置するセクショ
+ンの名前が渡されるので，ユーザスタック領域を確保するコードを生成し，大
+きい方に丸めたサイズを表す文字列を返す．
 
-(7-2-1-17) AllocDummyUserStack(stack, size, secname)（オプション）
+(7-2-1-18) AllocDummyUserStack(stack, size, secname)（オプション）
 
 レッドゾーン方式におけるダミースタック領域を確保する記述を生成するため
-の関数AllocDummyUserStackを定義する．AllocDummyUserStackには，割り付け
-るダミースタック領域の変数名，丸める前のサイズ，配置するセクションの名
-前が渡されるので，ダミースタック領域を確保するコードを生成する．レッド
-ゾーン方式を用いる場合には，必ず定義しなければならない．
+の関数AllocDummyUserStackを定義する．stack，size，secnameにはそれぞれ，
+ダミースタック領域の変数名，丸める前のサイズ，配置するセクションの名前
+が渡されるので，ダミースタック領域を確保するコードを生成する．レッドゾー
+ン方式を用いる場合には，必ず定義しなければならない．
 
-(7-2-1-18) AllocSystemStack(stack, size)（オプション）
+(7-2-1-19) AllocSystemStack(stack, size, params)（オプション）
 
 コンフィギュレータが割り付けるシステムスタック領域を確保する記述を生成
-するための関数AllocSystemStackを定義する．AllocSystemStackには，割り付
-けるシステムスタック領域の変数名と丸める前のサイズが渡されるので，シス
-テムスタック領域を確保するコードを生成し，大きい方に丸めたサイズを表す
-文字列を返す．システムスタック領域を確保する記述をデフォルトから変更し
-たい場合のみ定義すればよい．なお，ASP3カーネルのAllocStackは使用しない．
+するための関数AllocSystemStackを定義する．stackとsizeにはそれぞれ，割
+り付けるシステムスタック領域の変数名と丸める前のサイズが渡されるので，
+システムスタック領域を確保するコードを生成し，大きい方に丸めたサイズを
+表す文字列を返す．AllocSystemStackは，システムスタック領域を確保する記
+述をデフォルトから変更したい場合のみ定義すればよい．
 
-(7-2-1-19) SecnameUserMempfix(mpfid)
+paramsには，タスクのシステムスタック領域を確保する場合にはタスクのパラ
+メータ情報（ハッシュ）が，非タスクコンテキスト用スタック領域を確保する
+場合には:istackが渡される．ターゲット定義のタスク属性によって，システ
+ムスタック領域を配置するメモリリージョンを変更する場合に使用することを
+想定している．
+
+なお，ASP3カーネルのAllocStackは使用しない．
+
+(7-2-1-20) SecnameUserMempfix(mpfid)
 
 コンフィギュレータが割り付ける固定長メモリプール領域を配置するセクショ
-ンの名前を生成するための関数SecnameUserMempfixを定義する．
-SecnameUserMempfixには，固定長メモリプールID（数値および名前）が渡され
-る．
+ンの名前を生成するための関数SecnameUserMempfixを定義する．mpfidには，
+固定長メモリプールID（数値および名前）が渡される．
 
-(7-2-1-20) AllocUserMempfix(mpf, blkcnt, blksz, secname)
+(7-2-1-21) AllocUserMempfix(mpf, blkcnt, blksz, secname)
 
 コンフィギュレータが割り付ける固定長メモリプール領域を確保する記述を生
-成するための関数AllocUserMempfixを定義する．AllocUserMempfixには，割り
-付ける固定長メモリプール領域の変数名，ブロック数，丸める前のブロックサ
-イズ，配置するセクションの名前が渡されるので，固定長メモリプール領域を
-確保するコードを生成する．
+成するための関数AllocUserMempfixを定義する．mpf，blkcnt，blksz，
+secnameにはそれぞれ，割り付ける固定長メモリプール領域の変数名，ブロッ
+ク数，丸める前のブロックサイズ，配置するセクションの名前が渡されるので，
+固定長メモリプール領域を確保するコードを生成する．
 
-(7-2-1-21) TargetCheckRegion(params)（オプション）
+(7-2-1-22) TargetCheckRegion(params)（オプション）
 
 ATT_REGに関してターゲット依存のエラーチェックを行う必要がある場合には，
-エラーチェックを行う関数TargetCheckRegionを定義する．TargetCheckRegion
-には，ATT_REGのパラメータ情報（ハッシュ）が渡される．
+エラーチェックを行う関数TargetCheckRegionを定義する．paramsには，
+ATT_REGのパラメータ情報（ハッシュ）が渡される．
 
-(7-2-1-22) TargetCheckSection(params)（オプション）
+(7-2-1-23) TargetCheckSection(params)（オプション）
 
 ATT_SECに関してターゲット依存のエラーチェックを行う必要がある場合には，
-エラーチェックを行う関数TargetCheckSectionを定義する．
-TargetCheckSectionには，ATT_SECのパラメータ情報（ハッシュ）が渡される．
+エラーチェックを行う関数TargetCheckSectionを定義する．paramsには，
+ATT_SECのパラメータ情報（ハッシュ）が渡される．
 
-(7-2-1-23) TargetCheckMemory(params)（オプション）
+(7-2-1-24) TargetCheckMemory(params)（オプション）
 
 ATT_MEM／ATT_PMAに関してターゲット依存のエラーチェックを行う必要がある
-場合には，エラーチェックを行う関数TargetCheckMemoryを定義する．
-TargetCheckMemoryには，ATT_MEM／ATT_PMAのパラメータ情報（ハッシュ）が
-渡される．
+場合には，エラーチェックを行う関数TargetCheckMemoryを定義する．params
+には，ATT_MEM／ATT_PMAのパラメータ情報（ハッシュ）が渡される．
 
-(7-2-1-24) $START_OBJS（オプション）
-(7-2-1-25) $END_OBJS（オプション）
+(7-2-1-25) $START_OBJS（オプション）
+(7-2-1-26) $END_OBJS（オプション）
 
 ロードモジュールの先頭と最後にリンクすべきオブジェクトモジュール名のリ
 ストを，それぞれ，$START_OBJSと$END_OBJSに定義する．ここにリストアップ
@@ -1407,13 +1445,13 @@ TargetCheckMemoryには，ATT_MEM／ATT_PMAのパラメータ情報（ハッシ�
 ATT_MODしたのと同等に扱われる．Makefileのターゲット依存部に定義する
 START_OBJSとEND_OBJSと同じ内容とするのが基本である．
 
-(7-2-1-26) $TARGET_LIBS（オプション）
+(7-2-1-27) $TARGET_LIBS（オプション）
 
 コンパイラが必ず用いるライブラリのリストを定義する．ここにリストアップ
 したオブジェクトモジュール名は，無所属の末尾にATT_MODしたのと同等に扱
 われる．
 
-(7-2-1-27) $defaultSections
+(7-2-1-28) $defaultSections
 
 標準のセクションに関する情報を，$defaultSectionsに定義する．この変数に
 は，標準セクションの名前，標準メモリリージョンの中のどれに配置するか，
@@ -1448,7 +1486,7 @@ $defaultSections = [
 ]
 ----------------------------------------
 
-(7-2-1-28) $targetStandardSecnameList（オプション）
+(7-2-1-29) $targetStandardSecnameList（オプション）
 
 ターゲットに依存して，ATT_SECで登録できないセクション名を追加する必要
 がある場合には，セクション名のリストをこの変数に定義する．GNU開発環境
@@ -1458,21 +1496,21 @@ $defaultSections = [
 $targetStandardSecnameList = [ "COMMON" ]
 ----------------------------------------
 
-(7-2-1-29) TargetMemoryObject()（オプション）
+(7-2-1-30) TargetMemoryObject()（オプション）
 
 ターゲットに依存して，メモリオブジェクトを登録する必要がある場合には，
 メモリオブジェクトを登録する関数TargetMemoryObjectを定義する．ARMター
 ゲット依存部では，MMUのページテーブルを配置するためのセクションを登録
 している．
 
-(7-2-1-30) TargetCalcMeminibSize(size)（オプション）
+(7-2-1-31) TargetCalcMeminibSize(size)（オプション）
 
 ターゲットに依存して，メモリオブジェクト初期化ブロックのサイズを変更し
 たい場合に，変更後のサイズを返す関数TargetCalcMeminibSizeを定義する．
-TargetCalcMeminibSizeには，変更前のサイズが渡される．リンカによっては，
-コンフィギュレータが想定していない隙間が生じ，メモリオブジェクト初期化
-ブロックのサイズが不足する場合がある．そのような場合には，この関数を用
-いてメモリ初期化ブロックのサイズを大きくして回避する必要がある．
+sizeには，変更前のサイズが渡される．リンカによっては，コンフィギュレー
+タが想定していない隙間が生じ，メモリオブジェクト初期化ブロックのサイズ
+が不足する場合がある．そのような場合には，この関数を用いてメモリ初期化
+ブロックのサイズを大きくして回避する必要がある．
 
 7.2.2 ターゲット非依存部で定義される変数と関数
 
@@ -1545,7 +1583,7 @@ end
 保護ドメイン共通の標準ROMリージョンに出力される標準共有リードオンリー
 領域の最後に，言語依存（具体的にはC++用）のセクションを出力する必要が
 ある場合には，セクション出力記述を生成する関数HookEndLabelを定義する．
-HookEndLabelには，出力先のメモリリージョン名が渡される．
+regnameには，出力先のメモリリージョン名が渡される．
 
 7.3 パス3の生成スクリプトのターゲット依存部（自動メモリ配置用，オプション）
 

@@ -37,7 +37,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 # 
-#   $Id: mempfix.trb 665 2019-02-03 17:06:18Z ertl-hiro $
+#   $Id: mempfix.trb 911 2019-12-08 09:48:18Z ertl-hiro $
 # 
 
 #
@@ -92,6 +92,12 @@ class MempfixObject < KernelObject
         # メモリプール領域の確保
         mpfSecname = SecnameUserMempfix(params[:mpfid])
         AllocUserMempfix(mpfName, params[:blkcnt], params[:blksz], mpfSecname)
+
+        # mpfSecnameがATT_SECで登録されている場合（E_PAR）［NGKI5129］
+        if $secnameList.has_key?(mpfSecname)
+          error_ercd("E_PAR", $cfgData[:ATT_SEC][$secnameList[mpfSecname]], \
+						"section `%secname' cannot be attached with %apiname")
+        end
 
         # メモリオブジェクト情報の生成
         params2 = {}

@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_ovrhdr5.c 598 2018-12-12 00:33:36Z ertl-hiro $
+ *  $Id: test_ovrhdr5.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /* 
@@ -103,7 +103,7 @@ T_ROVR	*p_rovr_DOM1;
 volatile bool_t	task2_flag1 = false;
 
 void
-task3(intptr_t exinf)
+task3(EXINF exinf)
 {
 	check_point(0);
 }
@@ -126,7 +126,7 @@ extsvc1_routine(intptr_t par1, intptr_t par2, intptr_t par3,
 }
 
 void
-overrun_handler(ID tskid, intptr_t exinf)
+overrun_handler(ID tskid, EXINF exinf)
 {
 	ER_UINT	ercd;
 
@@ -149,7 +149,7 @@ overrun_handler(ID tskid, intptr_t exinf)
 }
 
 void
-task1(intptr_t exinf)
+task1(EXINF exinf)
 {
 	ER_UINT	ercd;
 	T_ROVR	rovr;
@@ -186,7 +186,7 @@ task1(intptr_t exinf)
 }
 
 void
-task2(intptr_t exinf)
+task2(EXINF exinf)
 {
 	ER_UINT	ercd;
 	T_ROVR	rovr;

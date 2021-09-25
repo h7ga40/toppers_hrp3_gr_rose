@@ -34,12 +34,14 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_calsvc.h 523 2018-11-04 12:47:50Z ertl-hiro $
+ *  $Id: test_calsvc.h 982 2020-05-26 00:14:29Z ertl-hiro $
  */
 
 /* 
  *		サービスコール呼出しに関するテスト
  */
+
+#include <kernel.h>
 
 /*
  *  ターゲット依存の定義
@@ -69,7 +71,7 @@
  */
 #ifndef TOPPERS_MACRO_ONLY
 
-extern void	task1(intptr_t exinf);
-extern void	task2(intptr_t exinf);
+extern void	task1(EXINF exinf);
+extern void	task2(EXINF exinf);
 
 #endif /* TOPPERS_MACRO_ONLY */

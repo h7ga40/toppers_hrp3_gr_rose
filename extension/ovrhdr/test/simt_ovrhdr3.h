@@ -34,12 +34,14 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: simt_ovrhdr3.h 608 2018-12-17 00:34:06Z ertl-hiro $
+ *  $Id: simt_ovrhdr3.h 982 2020-05-26 00:14:29Z ertl-hiro $
  */
 
 /* 
  *		オーバランハンドラ機能のテスト(3)
  */
+
+#include <kernel.h>
 
 /*
  *  ターゲット依存の定義
@@ -65,10 +67,10 @@
  */
 #ifndef TOPPERS_MACRO_ONLY
 
-extern void	task1(intptr_t exinf);
-extern void	task2(intptr_t exinf);
-extern void	alarm1_handler(intptr_t exinf);
+extern void	task1(EXINF exinf);
+extern void	task2(EXINF exinf);
+extern void	alarm1_handler(EXINF exinf);
 extern void	cpuexc_handler(void *p_excinf);
-extern void overrun_handler(ID tskid, intptr_t exinf);
+extern void overrun_handler(ID tskid, EXINF exinf);
 
 #endif /* TOPPERS_MACRO_ONLY */

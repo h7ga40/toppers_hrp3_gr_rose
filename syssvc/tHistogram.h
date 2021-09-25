@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: tHistogram.h 285 2018-03-21 02:55:49Z ertl-hiro $
+ *  $Id: tHistogram.h 941 2020-04-01 10:10:47Z ertl-hiro $
  */
 
 /*
@@ -67,7 +67,7 @@
 
 #ifndef HIST_BM_HOOK				/* 実行時間計測直前に行うべき処理 */
 #define HIST_BM_HOOK()			((void) 0)
-#endif
+#endif /* HIST_BM_HOOK */
 
 /*
  *  実行時間計測用の時刻のデータ型の定義

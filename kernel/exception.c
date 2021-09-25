@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: exception.c 57 2015-08-23 10:07:52Z ertl-hiro $
+ *  $Id: exception.c 932 2019-12-29 00:39:39Z ertl-hiro $
  */
 
 /*
@@ -98,8 +98,13 @@ xsns_dpn(void *p_excinf)
 	bool_t	state;
 
 	LOG_XSNS_DPN_ENTER(p_excinf);
-	state = (kerflg && exc_sense_intmask(p_excinf) && enadsp
+	if (sense_context()) {
+		state = (kerflg && exc_sense_intmask(p_excinf) && enadsp
 								&& p_runtsk != NULL) ? false : true;
+	}
+	else {
+		state = true;							/*［NGKI3152］*/
+	}
 	LOG_XSNS_DPN_LEAVE(state);
 	return(state);
 }

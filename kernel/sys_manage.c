@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2019 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: sys_manage.c 762 2019-10-01 04:58:59Z ertl-hiro $
+ *  $Id: sys_manage.c 939 2020-01-15 03:09:26Z ertl-hiro $
  */
 
 /*
@@ -197,23 +197,27 @@ ER
 rot_rdq(PRI tskpri)
 {
 	uint_t	pri;
+	bool_t	context;
 	ER		ercd;
 
 	LOG_ROT_RDQ_ENTER(tskpri);
 	CHECK_UNL();								/*［NGKI2684］*/
-	if (tskpri == TPRI_SELF && !sense_context()) {
+	context = sense_context();
+	if (tskpri == TPRI_SELF && !context) {
 		pri = p_runtsk->bpriority;				/*［NGKI2689］*/
 	}
 	else {
 		CHECK_PAR(VALID_TPRI(tskpri));			/*［NGKI2685］*/
 		pri = INT_PRIORITY(tskpri);
 	}
-	CHECK_ACPTN(p_runtsk->p_dominib->acvct.acptn1);		/*［NGKI3766］*/
+	if (!context) {								/*［NGKI3766］*/
+		CHECK_ACPTN(p_runtsk->p_dominib->acvct.acptn1);
+	}
 
 	lock_cpu();
-	rotate_ready_queue(pri, p_runtsk->p_schedcb);
+	rotate_ready_queue(pri, context ? &schedcb_kernel : p_runtsk->p_schedcb);
 	if (p_runtsk != p_schedtsk) {
-		if (!sense_context()) {
+		if (!context) {
 			dispatch();
 		}
 		else {

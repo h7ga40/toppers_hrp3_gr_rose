@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: perf0.c 397 2018-05-02 07:54:12Z ertl-hiro $
+ *  $Id: perf0.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /*
@@ -59,7 +59,7 @@
 /*
  *  メインタスク
  */
-void main_task(intptr_t exinf)
+void main_task(EXINF exinf)
 {
 	uint_t	i;
 	ER		ercd;

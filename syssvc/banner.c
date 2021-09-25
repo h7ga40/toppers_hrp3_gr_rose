@@ -72,7 +72,7 @@ static const char banner[] = "\n"
  *  カーネル起動メッセージの出力
  */
 void
-print_banner(intptr_t exinf)
+print_banner(EXINF exinf)
 {
 	syslog_5(LOG_NOTICE, banner,
 				(TKERNEL_PRVER >> 12) & 0x0fU,

@@ -58,6 +58,11 @@ extern void	target_fput_log(char c);
 #endif /* TOPPERS_OMIT_TECS */
 
 /*
+ *  コアのクロック周波数（パフォーマンスモニタによる性能評価用）
+ */
+#define CORE_CLK_MHZ	RZA1_CLK_I_MHZ
+
+/*
  *  コアで共通な定義（チップ依存部は飛ばす）
  */
 #include "core_syssvc.h"

@@ -35,7 +35,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 #
-#  $Id: pass2.rb 156 2018-05-17 16:13:17Z ertl-hiro $
+#  $Id: pass2.rb 175 2019-06-19 01:51:58Z ertl-hiro $
 #
 
 #
@@ -120,11 +120,11 @@ module Cfg1Out
           symbolData[:VALUE] = (value != 0)
         end
       else
-		if symbolData.has_key?(:INTPTR)
-	        value = GetSymbolValue(symbol, $sizeOfIntptr, \
+        if symbolData.has_key?(:INTPTR)
+          value = GetSymbolValue(symbol, $sizeOfIntptr, \
 										symbolData.has_key?(:SIGNED))
         else
-	        value = GetSymbolValue(symbol, $sizeOfSigned, \
+          value = GetSymbolValue(symbol, $sizeOfSigned, \
 										symbolData.has_key?(:SIGNED))
         end
         if !value.nil?
@@ -212,14 +212,14 @@ module Cfg1Out
       end
     elsif apiParam.has_key?(:EXPTYPE)			# 整数定数式パラメータ
       if !apiIndex.nil?
-      symbol = "#{$cfg1_prefix}valueof_#{paramName}_#{apiIndex}#{index}"
-      if apiParam.has_key?(:INTPTR)
-        value = GetSymbolValue(symbol, $sizeOfIntptr, \
+        symbol = "#{$cfg1_prefix}valueof_#{paramName}_#{apiIndex}#{index}"
+        if apiParam.has_key?(:INTPTR)
+          value = GetSymbolValue(symbol, $sizeOfIntptr, \
 										apiParam.has_key?(:SIGNED))
-      else
-        value = GetSymbolValue(symbol, $sizeOfSigned, \
+        else
+          value = GetSymbolValue(symbol, $sizeOfSigned, \
 										apiParam.has_key?(:SIGNED))
-      end
+        end
       else
         if param.is_a?(NumStr)
           return(param)
@@ -266,10 +266,10 @@ module Cfg1Out
 
       apiIndex = cfgInfo[:INDEX]
       if !apiIndex.nil?
-      # シンボルファイルに静的APIのインデックスが存在しなければ読み飛
-      # ばす（ifdef等で消えた静的API）
-      symbol = "#{$cfg1_prefix}static_api_#{apiIndex}"
-      next unless @symbolAddress.has_key?(symbol)
+        # シンボルファイルに静的APIのインデックスが存在しなければ読み飛
+        # ばす（ifdef等で消えた静的API）
+        symbol = "#{$cfg1_prefix}static_api_#{apiIndex}"
+        next unless @symbolAddress.has_key?(symbol)
       end
 
       apiDef[:PARAM].each do |apiParam|
@@ -328,10 +328,10 @@ module Cfg1Out
       apiSym = apiDef[:API].to_sym
       apiIndex = cfgInfo[:INDEX]
       if !apiIndex.nil?
-      # シンボルファイルに静的APIのインデックスが存在しなければ読み飛
-      # ばす（ifdef等で消えた静的API）
-      symbol = "#{$cfg1_prefix}static_api_#{apiIndex}"
-      next unless @symbolAddress.has_key?(symbol)
+        # シンボルファイルに静的APIのインデックスが存在しなければ読み飛
+        # ばす（ifdef等で消えた静的API）
+        symbol = "#{$cfg1_prefix}static_api_#{apiIndex}"
+        next unless @symbolAddress.has_key?(symbol)
       end
 
       # パラメータの値をハッシュ形式に格納
@@ -363,9 +363,9 @@ module Cfg1Out
       # クラスIDを追加
       if cfgInfo.has_key?(:CLASS)
         if !apiIndex.nil?
-        symbol = "#{$cfg1_prefix}valueof_CLASS_#{apiIndex}"
-        value = GetSymbolValue(symbol, $sizeOfSigned, true)
-        params[:class] = NumStr.new(value, cfgInfo[:CLASS])
+          symbol = "#{$cfg1_prefix}valueof_CLASS_#{apiIndex}"
+          value = GetSymbolValue(symbol, $sizeOfSigned, true)
+          params[:class] = NumStr.new(value, cfgInfo[:CLASS])
         else
           params[:class] = cfgInfo[:CLASS]
         end

@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_dlynse.h 3 2015-08-08 15:11:16Z ertl-hiro $
+ *  $Id: test_dlynse.h 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /*
@@ -65,6 +65,6 @@
  */
 #ifndef TOPPERS_MACRO_ONLY
 
-extern void	main_task(intptr_t exinf);
+extern void	main_task(EXINF exinf);
 
 #endif /* TOPPERS_MACRO_ONLY */

@@ -34,12 +34,14 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_extsvc1.h 508 2018-10-27 15:57:48Z ertl-hiro $
+ *  $Id: test_extsvc1.h 982 2020-05-26 00:14:29Z ertl-hiro $
  */
 
 /* 
  *		拡張サービスコールに関するテスト(1)
  */
+
+#include <kernel.h>
 
 /*
  *  ターゲット依存の定義
@@ -85,13 +87,13 @@
  */
 #ifndef TOPPERS_MACRO_ONLY
 
-extern void	task1(intptr_t exinf);
+extern void	task1(EXINF exinf);
 
-extern void	task2(intptr_t exinf);
+extern void	task2(EXINF exinf);
 
-extern void	task3(intptr_t exinf);
+extern void	task3(EXINF exinf);
 
-extern void	alarm1_handler(intptr_t exinf);
+extern void	alarm1_handler(EXINF exinf);
 
 extern ER_UINT extsvc1_routine(intptr_t par1, intptr_t par2, intptr_t par3,
 								intptr_t par4, intptr_t par5, ID cdmid);

@@ -21,6 +21,12 @@ perf4.h
 perf5.c
 perf5.cfg
 perf5.h
+perf_measure1.c
+perf_measure1.cfg
+perf_pcalsvc1.c
+perf_pcalsvc1.cfg
+perf_pextsvc1.c
+perf_pextsvc1.cfg
 perf_pf.cdl
 simt_systim1.c
 simt_systim1.cfg
@@ -44,7 +50,6 @@ simt_twd1.c
 simt_twd1.cfg
 simt_twd1.h
 tBitKernel.c
-tBitMutex.c
 test_calsvc.c
 test_calsvc.cfg
 test_calsvc.h
@@ -132,7 +137,6 @@ test_notify1.cfg
 test_notify1.h
 test_pf.cdl
 test_pf_bitkernel.cdl
-test_pf_bitmutex.cdl
 test_prbstr.c
 test_prbstr.cfg
 test_prbstr.h
@@ -181,7 +185,8 @@ test_tprot4.c
 test_tprot4.cfg
 test_tprot5.c
 test_tprot5.cfg
-test_twdnfy.c
-test_twdnfy.cfg
-test_twdnfy.h
+test_twdnfy1.c
+test_twdnfy1.cfg
+test_twdnfy2.c
+test_twdnfy2.cfg
 testexec.rb
