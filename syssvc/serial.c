@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: serial.c 415 2018-07-27 09:06:40Z ertl-hiro $
+ *  $Id: serial.c 980 2020-05-25 07:06:43Z ertl-hiro $
  */
 
 /*
@@ -312,7 +312,7 @@ _serial_opn_por(ID portid)
 		/*
 		 *  ハードウェア依存のオープン処理
 		 */
-		p_spcb->p_siopcb = sio_opn_por(portid, (intptr_t) p_spcb);
+		p_spcb->p_siopcb = sio_opn_por(portid, (EXINF) p_spcb);
 
 		/*
 		 *  受信通知コールバックを許可する．
