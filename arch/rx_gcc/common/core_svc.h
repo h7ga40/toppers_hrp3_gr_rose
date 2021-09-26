@@ -61,7 +61,7 @@
 	Asm("int %1"												\
 	  : "=r"(r1)												\
 	  : "n"(SVC_SERVICE_CALL),"r"(r5)							\
-	  : "r2","r3","r4","memory","cc");							\
+	  : "r2","r3","r4","r14","r15","memory","cc");				\
 	return((TYPE) r1);											\
 } while (false)
 
@@ -71,7 +71,7 @@
 	Asm("int %1"												\
 	  : "=r"(r1)												\
 	  : "n"(SVC_SERVICE_CALL),"0"(r1),"r"(r5)					\
-	  : "r2","r3","r4","memory","cc");							\
+	  : "r2","r3","r4","r14","r15","memory","cc");				\
 	return((TYPE) r1);											\
 } while (false)
 
@@ -82,7 +82,7 @@
 	Asm("int %2"												\
 	  : "=r"(r1),"=r"(r2)										\
 	  : "n"(SVC_SERVICE_CALL),"0"(r1),"1"(r2),"r"(r5)			\
-	  : "r3","r4","memory","cc");								\
+	  : "r3","r4","r14","r15","memory","cc");					\
 	return((TYPE) r1);											\
 } while (false)
 
@@ -96,7 +96,7 @@
 	  : "=r"(r1),"=r"(r2),"=r"(r3)								\
 	  : "n"(SVC_SERVICE_CALL),"0"(r1),"1"(r2),"2"(r3),			\
 		"r"(r5)													\
-	  : "r4","memory","cc");									\
+	  : "r4","r14","r15","memory","cc");						\
 	return((TYPE) r1);											\
 } while (false)
 
@@ -111,7 +111,7 @@
 	  : "=r"(r1),"=r"(r2),"=r"(r3),"=r"(r4)						\
 	  : "n"(SVC_SERVICE_CALL),"0"(r1),"1"(r2),"2"(r3),			\
 		"3"(r4),"r"(r5)											\
-	  : "memory","cc");								\
+	  : "r14","r15","memory","cc");								\
 	return((TYPE) r1);											\
 } while (false)
 
@@ -127,7 +127,7 @@
 	  : "=r"(r1),"=r"(r2),"=r"(r3),"=r"(r4),"=r"(r14)			\
 	  : "n"(SVC_SERVICE_CALL),"0"(r1),"1"(r2),"2"(r3),			\
 		"3"(r4),"4"(r14),"r"(r5)								\
-	  : "memory","cc");								\
+	  : "r15","memory","cc");									\
 	return((TYPE) r1);											\
 } while (false)
 
@@ -138,7 +138,7 @@
 	Asm("int %2"														\
 	  : "=r"(r1),"=r"(r2)												\
 	  : "n"(SVC_SERVICE_CALL),"0"(r1),"1"(r2),"r"(r5)					\
-	  : "r3","r4","memory","cc");										\
+	  : "r3","r4","r14","r15","memory","cc");							\
 	return((TYPE) r1);													\
 } while (false)
 
@@ -149,7 +149,7 @@
 	Asm("int %2"														\
 	  : "=r"(r1),"=r"(r2)												\
 	  : "n"(SVC_SERVICE_CALL),"0"(r1),"1"(r2),"r"(r5)					\
-	  : "r3","r4","memory","cc");										\
+	  : "r3","r4","r14","r15","memory","cc");							\
 	return((((TYPE) r2) << 32) + ((TYPE) r1));							\
 } while (false)
 
