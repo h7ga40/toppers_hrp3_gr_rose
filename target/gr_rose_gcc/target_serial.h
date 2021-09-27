@@ -50,13 +50,15 @@
 /*
  *  SIOポート数の定義
  */
-#define TNUM_PORT 1
+#define TNUM_PORT 2
 
 /*
  *  各SIOポートの関連情報
  */
 #define SCI1_SIO_ID (1)
 #define SCI1_INTPRI (-4)
+#define SCI6_SIO_ID (2)
+#define SCI6_INTPRI (-4)
 
 #include "prc_serial.h"
 
