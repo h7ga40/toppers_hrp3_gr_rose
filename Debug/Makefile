@@ -117,6 +117,7 @@ CFG = ruby --verbose $(SRCDIR)/cfg/cfg.rb
 TECSGEN = ruby $(TECSDIR)/tecsgen.rb
 TOUCH=C:\msys64\usr\bin\touch.exe
 CP=C:\msys64\usr\bin\cp.exe
+SED=C:\msys64\usr\bin\sed.exe
 DIFF=C:\msys64\usr\bin\diff.exe
 
 #
@@ -594,15 +595,19 @@ $(OBJNAME).mot: $(OBJFILE)
 #
 #  エラーチェック処理
 #
+# .Ldebug_line0のアドレスが異なることがあるので、その行を削除
+#
 .PHONY: check
 check: check.timestamp ;
 check.timestamp: $(OBJNAME).syms
 	$(TOUCH) check.timestamp
+	$(SED) -e "/ N \.Ldebug_line0/d" $(OBJNAME).syms > temp1.syms
 ifdef USE_CFG_PASS3
-	$(DIFF) cfg3_out.syms $(OBJNAME).syms
+	$(SED) -e "/ N \.Ldebug_line0/d" cfg3_out.syms > temp2.syms
 else
-	$(DIFF) cfg2_out.syms $(OBJNAME).syms
+	$(SED) -e "/ N \.Ldebug_line0/d" cfg2_out.syms > temp2.syms
 endif
+	$(DIFF) temp2.syms temp1.syms
 	@echo "configuration check passed"
 
 #
