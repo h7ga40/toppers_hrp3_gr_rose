@@ -1,5 +1,5 @@
 /*
- *		システムサービスのターゲット依存部（ZYBO用）
+ *		システムサービスのターゲット依存部（ZYBO_Z7用）
  *
  *  システムサービスのターゲット依存部のヘッダファイル．システムサービ
  *  スのターゲット依存の設定は，できる限りコンポーネント記述ファイルで
@@ -13,13 +13,13 @@
 
 #ifdef TOPPERS_OMIT_TECS
 
-#include "zybo.h"
+#include "zybo_z7.h"
 #include "zynq7000.h"
 
 /*
  *  起動メッセージのターゲットシステム名
  */
-#define TARGET_NAME    "ZYBO <Zynq-7000, Cortex-A9>"
+#define TARGET_NAME    "ZYBO_Z7 <Zynq-7000, Cortex-A9>"
 
 /*
  *  システムログの低レベル出力のための文字出力

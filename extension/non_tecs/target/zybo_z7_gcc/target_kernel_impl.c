@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      High Reliable system Profile Kernel
  * 
- *  Copyright (C) 2007-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2007-2020 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -39,13 +39,13 @@
  */
 
 /*
- *		カーネルのターゲット依存部（ZYBO用）
+ *		カーネルのターゲット依存部（ZYBO_Z7用）
  */
 
 #include "kernel_impl.h"
 #include <sil.h>
 #include "arm.h"
-#include "zybo.h"
+#include "zybo_z7.h"
 #include "pl310.h"
 
 /*
@@ -66,7 +66,7 @@ extern void	target_fput_initialize(void);
 #endif /* TOPPERS_OMIT_TECS */
 
 /*
- *  OS起動時の初期化
+ *  ハードウェアの初期化
  */
 void
 hardware_init_hook(void)
@@ -135,7 +135,8 @@ target_exit(void)
 	/*
 	 *  QEMUを終了させる．
 	 */
-	Asm("mov r0, #24\n\t"
+	Asm("ldr r1, =#0x20026\n\t"		/* ADP_Stopped_ApplicationExit */ 
+		"mov r0, #0x18\n\t"			/* angel_SWIreason_ReportException */
 		"svc 0x00123456");
 #endif
 	while (true) ;
@@ -172,7 +173,9 @@ zybo_uart_fput(char c)
 	/*
 	 *  送信できるまでポーリング
 	 */
-	while (!(sio_snd_chr(p_siopcb_target_fput, c))) ;
+	while (!(sio_snd_chr(p_siopcb_target_fput, c))) {
+		sil_dly_nse(100);
+	}
 }
 
 /*
