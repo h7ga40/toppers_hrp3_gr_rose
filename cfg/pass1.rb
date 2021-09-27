@@ -177,8 +177,8 @@ def ReadSymvalTable
       next
     end
 
-    symvalCsv = CSV.open(File.open(symvalTableFileName))
-						{ skip_blanks: true, skip_lines: /^#/ }
+    symvalCsv = CSV.open(symvalTableFileName,
+                         skip_blanks: true, skip_lines: /^#/)
     symvalCsv.each do |record|
       symbol = {}
 
