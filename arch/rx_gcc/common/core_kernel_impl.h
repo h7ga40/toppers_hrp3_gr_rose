@@ -57,6 +57,11 @@
 #include "core_insn.h"
 
 /*
+ *  ターゲット依存のメモリオブジェクト属性（エラーチェック用）
+ */
+#define TARGET_MEMATR		(TA_NOREADWRITE|TA_KEEP)
+
+/*
  *  エラーチェック方法の指定
  */
 #define CHECK_USTKSZ_ALIGN	16	/* ユーザスタックサイズのアライン単位 */

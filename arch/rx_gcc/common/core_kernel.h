@@ -5,7 +5,7 @@
  *
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2021 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  *
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -60,6 +60,16 @@
 #define EXCNO_UNDEF		23	/* 未定義命令例外 */
 #define EXCNO_FLOAT		25	/* 浮動小数点例外 */
 #define EXCNO_NMI		30	/* ノンマスカブル割込み */
+
+/*
+ *  ターゲット依存のメモリオブジェクト属性
+ */
+#define TA_NOREADWRITE	UINT_C(0x100)		/* 固定ベクタのようなアクセスしない領域 */
+
+/*
+ *  開発環境（GNU開発環境）依存のメモリオブジェクト属性
+ */
+#define TA_KEEP			UINT_C(0x1000)		/* セクションにKEEP指定を付ける */
 
 /*
  *  CPU例外ハンドラ番号の属性
