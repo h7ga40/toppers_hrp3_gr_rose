@@ -62,11 +62,6 @@
 #define EXCNO_NMI		30	/* ノンマスカブル割込み */
 
 /*
- *  ターゲット依存のメモリオブジェクト属性
- */
-#define TA_NOREADWRITE	UINT_C(0x100)		/* 固定ベクタのようなアクセスしない領域 */
-
-/*
  *  開発環境（GNU開発環境）依存のメモリオブジェクト属性
  */
 #define TA_KEEP			UINT_C(0x1000)		/* セクションにKEEP指定を付ける */

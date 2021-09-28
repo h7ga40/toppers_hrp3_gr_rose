@@ -147,7 +147,7 @@ def GenerateDominictxb(key, params)
 end
 
 #
-#  CCRX用MPU情報の作成（自動メモリ配置）
+#  GCC用MPU情報の作成（自動メモリ配置）
 #
 def GenerateMpuAreaInfo(aMemObj, acptn)
   aMemObj.each{|params|
@@ -176,9 +176,7 @@ def GenerateMpuAreaInfo(aMemObj, acptn)
         repage |= (1 << 3)
       end
     end
-    if (params[:mematr] & $TA_NOREADWRITE) == 0
-      $kernelMemC.add("\t{ 0x#{rspage.to_s(16)}U, 0x#{repage.to_s(16)}U }, /* rspage, repage */")  
-    end
+    $kernelMemC.add("\t{ 0x#{rspage.to_s(16)}U, 0x#{repage.to_s(16)}U }, /* rspage, repage */")  
   }
 end
 def GenerateMpuInfoTable

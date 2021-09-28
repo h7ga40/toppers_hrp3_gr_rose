@@ -59,7 +59,7 @@
 /*
  *  ターゲット依存のメモリオブジェクト属性（エラーチェック用）
  */
-#define TARGET_MEMATR		(TA_NOREADWRITE|TA_KEEP)
+#define TARGET_MEMATR		(TA_KEEP)
 
 /*
  *  エラーチェック方法の指定

@@ -216,7 +216,7 @@ kernelCfgAsm = GenFile.new("kernel_cfg_asm.S")
 
 kernelCfgAsm.add(<<EOS)
 ;
-;  CCRX用出力ファイル
+;  GCC用出力ファイル
 ;
 ;  割込みベクタ及び割込みハンドラ定義
 ;
